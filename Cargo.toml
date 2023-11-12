@@ -1,0 +1,3 @@
+[workspace]
+members = ["gateway", "bank", "shared"]
+resolver = "2"
