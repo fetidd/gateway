@@ -1,6 +1,8 @@
 mod bank;
 
-fn main() -> Result<(), std::io::Error> {
+use shared::gw_error::GwError;
+
+fn main() -> Result<(), GwError> {
     let mut b = bank::Bank::init()?;
     b.run()
 }

@@ -19,3 +19,9 @@ impl Display for GwError {
         write!(f, "{}", msg)
     }
 }
+
+impl From<std::io::Error> for GwError {
+    fn from(value: std::io::Error) -> Self {
+        Self::ConnectionError
+    }
+}
