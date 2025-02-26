@@ -1,0 +1,4 @@
+[workspace]
+resolver = "2"
+members = ["gw_core", "gw_api"]
+
