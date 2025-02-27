@@ -13,15 +13,17 @@ impl Serialize for PaymentResponse {
     {
         let mut state = serializer.serialize_struct("PaymentResponse", 2)?;
         match &self.payment_type {
-            PaymentType::Card { scheme } => {
+            PaymentType::Card { scheme , expiry_date, security_code: _} => {
                 state.serialize_field("type", "CARD")?;
                 state.serialize_field("scheme", &scheme.to_string())?;
+                state.serialize_field("expiry_year", &expiry_date.0)?;
+                state.serialize_field("expiry_month", &expiry_date.1)?;
             }
             PaymentType::Account => {
                 state.serialize_field("type", "ACCOUNT")?;
             }
         }
-        state.serialize_field("account_number", &self.account_number)?;
+        state.serialize_field("account_number", &self.account_number)?; // TODO mask this
         state.end()
     }
 }

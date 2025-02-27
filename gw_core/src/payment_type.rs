@@ -1,7 +1,9 @@
 use crate::card_scheme::CardScheme;
 
-#[derive(Clone, Copy, Debug)]
+pub type ExpiryDate = (u32, u8);
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum PaymentType {
-    Card { scheme: CardScheme },
+    Card { scheme: CardScheme, expiry_date: ExpiryDate, security_code: String },
     Account,
 }

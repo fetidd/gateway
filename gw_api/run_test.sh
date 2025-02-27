@@ -1,0 +1,1 @@
+uv run apitest/apitest.py --file ../target/debug/gw_api --test_path ./tests.yaml

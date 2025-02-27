@@ -6,5 +6,5 @@ use super::{billing::BillingRequest, payment::PaymentRequest};
 pub struct TransactionRequest {
     pub baseamount: u32,
     pub payment: Option<PaymentRequest>,
-    pub billing: Option<BillingRequest>,
+    pub _billing: Option<BillingRequest>,
 }
