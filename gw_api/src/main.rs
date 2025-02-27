@@ -1,57 +1,176 @@
+use std::collections::HashMap;
+
 use axum::{
     http::StatusCode,
     routing::{get, post},
     Json, Router,
 };
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{VariantAccess, Visitor},
+    ser::SerializeStruct,
+    Deserialize, Serialize,
+};
+use tracing::{info, instrument, span, Level};
 
 #[tokio::main]
 async fn main() {
-    // initialize tracing
     tracing_subscriber::fmt::init();
-
-    // build our application with a route
     let app = Router::new()
-        // `GET /` goes to `root`
         .route("/", get(root))
-        // `POST /users` goes to `create_user`
-        .route("/users", post(create_user));
-
-    // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+        .route("/transaction", post(handle_transaction));
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
-// basic handler that responds with a static string
 async fn root() -> &'static str {
     "Hello, World!"
 }
 
-async fn create_user(
-    // this argument tells axum to parse the request body
-    // as JSON into a `CreateUser` type
-    Json(payload): Json<CreateUser>,
-) -> (StatusCode, Json<User>) {
-    // insert your application logic here
-    let user = User {
-        id: 1337,
-        username: payload.username,
+#[instrument]
+async fn handle_transaction(
+    Json(payload): Json<TransactionRequest>,
+) -> (StatusCode, Json<TransactionResponse>) {
+    let payment = payload.payment.unwrap();
+    info!("hello");
+    let res = TransactionResponse {
+        baseamount: payload.baseamount,
+        result: String::from("success"),
+        payment: Some(PaymentResponse {
+            payment_type: payment.payment_type,
+            account_number: payment.account_number.clone(),
+        }),
+        ..Default::default()
     };
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::CREATED, Json(user))
+    (StatusCode::CREATED, Json(res))
 }
 
-// the input to our `create_user` handler
-#[derive(Deserialize)]
-struct CreateUser {
-    username: String,
+#[derive(Deserialize, Default, Debug)]
+struct TransactionRequest {
+    baseamount: u32,
+    payment: Option<PaymentRequest>,
+    billing: Option<BillingRequest>,
 }
 
-// the output to our `create_user` handler
-#[derive(Serialize)]
-struct User {
-    id: u64,
-    username: String,
+#[derive(Debug)]
+struct PaymentRequest {
+    payment_type: PaymentType,
+    account_number: String,
 }
+
+impl<'de> Deserialize<'de> for PaymentRequest {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let span = span!(Level::INFO, "deserializing");
+        let _guard = span.enter();
+        let hm = deserializer.deserialize_map(PaymentRequestVisitor)?; // TODO hsshmap allocates on heap - use an array somehow? we will knowntge max num fields we're gonna take from the json obj
+        info!(?hm);
+        if let Some(p_type) = hm.get("type") {
+            match *p_type {
+                "CARD" => match hm.get("scheme") {
+                    Some(s) => Ok(Self {
+                        payment_type: PaymentType::Card {
+                            scheme: match *s {
+                                "VISA" => CardScheme::Visa,
+                                "MASTERCARD" => CardScheme::Mastercard,
+                                _ => todo!(),
+                            },
+                        },
+                        account_number: hm.get("account_number").unwrap().to_string(),
+                    }),
+                    None => todo!(),
+                },
+                "ACCOUNT" => todo!(),
+                _ => todo!(),
+            }
+        } else {
+            todo!()
+        }
+    }
+}
+
+struct PaymentRequestVisitor;
+impl<'v> Visitor<'v> for PaymentRequestVisitor {
+    type Value = HashMap<&'v str, &'v str>;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(formatter, "type of CARD, ACCOUNT; CARD requires scheme")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'v>,
+    {
+        let mut hm: HashMap<&str, &str> = HashMap::new();
+        while let Ok(Some(entry)) = map.next_entry() {
+            hm.insert(entry.0, entry.1);
+        }
+        Ok(hm)
+    }
+}
+
+#[derive(Deserialize, Default, Debug)]
+struct BillingRequest {}
+
+#[derive(Serialize, Default)]
+struct TransactionResponse {
+    baseamount: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    payment: Option<PaymentResponse>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    billing: Option<BillingResponse>,
+    result: String,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum PaymentType {
+    Card { scheme: CardScheme },
+    Account,
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+enum CardScheme {
+    #[serde(rename = "VISA")]
+    Visa,
+    #[serde(rename = "MASTERCARD")]
+    Mastercard,
+}
+
+impl std::fmt::Display for CardScheme {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            CardScheme::Visa => "VISA",
+            CardScheme::Mastercard => "MASTERCARD",
+        };
+        write!(f, "{s}")
+    }
+}
+
+struct PaymentResponse {
+    payment_type: PaymentType,
+    account_number: String,
+}
+
+impl Serialize for PaymentResponse {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("PaymentResponse", 2)?;
+        match &self.payment_type {
+            PaymentType::Card { scheme } => {
+                state.serialize_field("type", "CARD")?;
+                state.serialize_field("scheme", &scheme.to_string())?;
+            }
+            PaymentType::Account => {
+                state.serialize_field("type", "ACCOUNT")?;
+            }
+        }
+        state.serialize_field("account_number", &self.account_number)?;
+        state.end()
+    }
+}
+
+#[derive(Serialize, Default)]
+struct BillingResponse {}
