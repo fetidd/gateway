@@ -1,4 +1,4 @@
-use gw_core::payment_type::PaymentType;
+use gw_core::{payment_type::PaymentType, utils};
 use serde::{ser::SerializeStruct, Serialize};
 
 pub struct PaymentResponse {
@@ -13,7 +13,11 @@ impl Serialize for PaymentResponse {
     {
         let mut state = serializer.serialize_struct("PaymentResponse", 2)?;
         match &self.payment_type {
-            PaymentType::Card { scheme , expiry_date, security_code: _} => {
+            PaymentType::Card {
+                scheme,
+                expiry_date,
+                security_code: _,
+            } => {
                 state.serialize_field("type", "CARD")?;
                 state.serialize_field("scheme", &scheme.to_string())?;
                 state.serialize_field("expiry_year", &expiry_date.0)?;
@@ -23,7 +27,7 @@ impl Serialize for PaymentResponse {
                 state.serialize_field("type", "ACCOUNT")?;
             }
         }
-        state.serialize_field("account_number", &self.account_number)?; // TODO mask this
+        state.serialize_field("account_number", &self.account_number)?;
         state.end()
     }
 }

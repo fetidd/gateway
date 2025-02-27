@@ -1,6 +1,9 @@
-use serde::Serialize;
+mod billing;
+mod payment;
 
-use super::{billing::BillingResponse, payment::PaymentResponse};
+use billing::BillingResponse;
+use payment::PaymentResponse;
+use serde::Serialize;
 
 #[derive(Serialize, Default)]
 pub struct TransactionResponse {

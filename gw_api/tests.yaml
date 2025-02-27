@@ -23,7 +23,7 @@ transaction:
         payment:
           type: CARD
           scheme: VISA
-          account_number: "1234123412341234"
+          account_number: "123412######1234"
           expiry_year: 2021
           expiry_month: 12
         result: success

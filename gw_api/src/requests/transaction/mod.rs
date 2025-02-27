@@ -1,6 +1,9 @@
-use serde::Deserialize;
+mod billing;
+mod payment;
 
-use super::{billing::BillingRequest, payment::PaymentRequest};
+use billing::BillingRequest;
+use payment::PaymentRequest;
+use serde::Deserialize;
 
 #[derive(Deserialize, Default, Debug)]
 pub struct TransactionRequest {
