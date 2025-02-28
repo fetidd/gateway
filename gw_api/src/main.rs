@@ -1,11 +1,10 @@
 mod requests;
 mod responses;
 
-use axum::{http::StatusCode, routing::post, Json, Router};
-use gw_core::{payment_type::PaymentType, utils};
+use axum::{http::StatusCode, response::IntoResponse, routing::post, Json, Router};
 use requests::transaction::TransactionRequest;
-use responses::transaction::TransactionResponse;
-use tracing::{error, instrument};
+use serde_json::json;
+use tracing::instrument;
 
 #[tokio::main]
 async fn main() {
@@ -18,32 +17,6 @@ async fn main() {
 #[instrument]
 async fn handle_post_transaction(
     Json(payload): Json<TransactionRequest>,
-) -> (StatusCode, Json<TransactionResponse>) {
-    let payment = match payload.payment {
-        Some(p) => p,
-        None => {
-            error!("Missing payment details in transaction");
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(TransactionResponse {
-                    result: "failed".into(),
-                    ..Default::default()
-                }),
-            );
-        }
-    };
-    let masker = match payment.payment_type {
-        PaymentType::Card { .. } => utils::mask_pan,
-        PaymentType::Account => utils::mask_account_number,
-    };
-    let res = TransactionResponse {
-        baseamount: Some(payload.baseamount),
-        result: String::from("success"),
-        // payment: Some(PaymentResponse {
-        //     payment_type: payment.payment_type,
-        //     account_number: masker(&payment.account_number),
-        // }),
-        ..Default::default()
-    };
-    (StatusCode::CREATED, Json(res))
+) -> impl IntoResponse {
+    (StatusCode::CREATED, Json(json!({"name": "derp"})))
 }
