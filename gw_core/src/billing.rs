@@ -1,11 +1,12 @@
 use crate::country::Country;
 
+#[derive(Default, PartialEq, Debug, Clone)]
 pub struct Billing {
-    first_name: String,
-    last_name: String,
-    premise: String,
-    street: String,
-    city: String,
-    county: String,
-    country: Country,
+    pub first_name: String,
+    pub last_name: String,
+    pub premise: String,
+    pub street: String,
+    pub city: String,
+    pub county: String,
+    pub country: Country,
 }

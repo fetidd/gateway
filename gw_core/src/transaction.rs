@@ -1,11 +1,15 @@
 use crate::{
-    account::Account, amount::Amount, billing::Billing, customer::Customer, merchant::Merchant,
+    account::Account,
+    amount::{Amount, BASE},
+    billing::Billing,
+    customer::Customer,
+    merchant::Merchant,
     payment::Payment,
 };
 
 pub enum Transaction {
     Auth {
-        amount: Amount,
+        amount: Amount<BASE>,
         payment: Payment,
         billing: Billing,
         merchant: Merchant,
@@ -13,7 +17,7 @@ pub enum Transaction {
         customer: Customer,
     },
     Refund {
-        amount: Amount,
+        amount: Amount<BASE>,
         payment: Payment,
         billing: Billing,
         merchant: Merchant,

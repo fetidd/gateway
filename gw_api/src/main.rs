@@ -1,9 +1,7 @@
-mod requests;
-mod responses;
-
 use std::sync::Arc;
 
 use axum::{http::StatusCode, response::IntoResponse, routing::post, Json, Router};
+use gw_api::requests;
 use requests::transaction::TransactionRequest;
 use serde_json::json;
 use tokio::sync::Mutex;
