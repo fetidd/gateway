@@ -1,5 +1,24 @@
-pub struct Transaction {
-    pub id: String,
-    pub baseamount: u32,
-    pub acquirer: String,
+use crate::{
+    account::Account, amount::Amount, billing::Billing, customer::Customer, merchant::Merchant,
+    payment::Payment,
+};
+
+pub enum Transaction {
+    Auth {
+        amount: Amount,
+        payment: Payment,
+        billing: Billing,
+        merchant: Merchant,
+        account: Account,
+        customer: Customer,
+    },
+    Refund {
+        amount: Amount,
+        payment: Payment,
+        billing: Billing,
+        merchant: Merchant,
+        account: Account,
+        customer: Customer,
+    },
+    Query {},
 }
