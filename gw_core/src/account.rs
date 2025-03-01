@@ -1,1 +1,3 @@
-pub enum Account {}
+pub enum Account {
+    BankA {},
+}

@@ -75,13 +75,12 @@ impl Display for Amount<DEC> {
         if dec_places > 0 {
             write!(
                 f,
-                "{} {}.{}",
-                self.currency,
+                "{}.{}",
                 &value[..dec_places - 1],
                 &value[dec_places - 1..]
             )
         } else {
-            write!(f, "{} {}", self.currency, value)
+            write!(f, "{}", value)
         }
     }
 }
@@ -92,10 +91,10 @@ mod tests {
     use rstest::*;
 
     #[rstest]
-    #[case(Amount::from((123, Currency::GBP)), "123", "GBP 1.23")]
-    #[case(Amount::from(123), "123", "GBP 1.23")]
-    #[case(Amount::from((0, Currency::GBP)), "0", "GBP 0.00")]
-    #[case(Amount::from((123, Currency::JPY)), "123", "JPY 123")]
+    #[case(Amount::from((123, Currency::GBP)), "123", "1.23")]
+    #[case(Amount::from(123), "123", "1.23")]
+    #[case(Amount::from((0, Currency::GBP)), "0", "0.00")]
+    #[case(Amount::from((123, Currency::JPY)), "123", "123")]
     fn test_display(#[case] amount: Amount<BASE>, #[case] exp_base: &str, #[case] exp_dec: &str) {
         assert_eq!(amount.to_string(), exp_base);
         let amount = amount.to_dec();
