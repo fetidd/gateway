@@ -9,11 +9,13 @@ use crate::{
     payment::Payment,
 };
 
+#[derive(Debug, PartialEq, Clone)]
 pub enum TransactionType {
     Auth,
     Refund,
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Transaction {
     r#type: TransactionType,
     amount: Amount<BASE>,

@@ -19,7 +19,7 @@ mod tests {
     use super::*;
     use gw_core::{
         card_scheme::CardScheme,
-        transaction::{new_auth, Transaction},
+        transaction::{transaction_builder::TransactionBuilder, Transaction},
     };
     use rstest::*;
 

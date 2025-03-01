@@ -4,11 +4,11 @@ use serde::Serialize;
 
 use crate::currency::Currency;
 
-#[derive(Serialize, Debug, Clone, Copy)]
+#[derive(Serialize, Debug, Clone, Copy, PartialEq, Default)]
 pub struct Amount<R: Repr> {
     pub value: u64,
     pub currency: Currency,
-    _marker: PhantomData<R>,
+    pub _marker: PhantomData<R>,
 }
 
 impl From<(u64, Currency)> for Amount<BASE> {
@@ -33,7 +33,9 @@ impl From<u64> for Amount<BASE> {
 
 /// BASE reprsents the Amount as a whole integer.
 /// DEC represents the amount as a decimal if the currency permits.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct BASE;
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct DEC;
 pub trait Repr {}
 impl Repr for BASE {}
