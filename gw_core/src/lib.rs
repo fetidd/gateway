@@ -8,4 +8,5 @@ pub mod customer;
 pub mod merchant;
 pub mod payment;
 pub mod transaction;
+pub mod transaction_builder;
 pub mod utils;
