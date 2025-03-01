@@ -17,3 +17,18 @@ impl Currency {
         }
     }
 }
+
+impl std::fmt::Display for Currency {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Currency::GBP => "GBP",
+                Currency::EUR => "EUR",
+                Currency::USD => "USD",
+                Currency::JPY => "JPY",
+            }
+        )
+    }
+}
