@@ -47,7 +47,7 @@ mod tests {
         let exp_json = r#"{
   "country": "GB"
 }"#;
-        check_serialize_to_response(&billing, &exp, &exp_json);
+        check_serialize_to_response(&billing, &exp, exp_json);
 
         billing.first_name = "Ben".into();
         billing.last_name = "Jones".into();
@@ -65,6 +65,6 @@ mod tests {
   "city": "Llandudno Junction",
   "country": "GB"
 }"#;
-        check_serialize_to_response(&billing, &exp, &exp_json);
+        check_serialize_to_response(&billing, &exp, exp_json);
     }
 }

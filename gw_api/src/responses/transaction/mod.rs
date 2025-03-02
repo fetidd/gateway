@@ -34,11 +34,7 @@ impl<'a> From<&'a Transaction> for TransactionResponse<'a> {
             payment: (&value.payment).into(),
             billing: (&value.billing).into(),
             status: value.status.to_string(),
-            error: if error.is_some() {
-                error.unwrap().clone()
-            } else {
-                None
-            },
+            error: if let Some(e) = error { e.clone() } else { None },
         }
     }
 }
@@ -48,7 +44,7 @@ mod tests {
     use crate::test_utils::check_serialize_to_response;
 
     use super::*;
-    use gw_core::transaction::TransactionStatus;
+
     use gw_core::{
         account::Account,
         billing::Billing,
@@ -108,6 +104,6 @@ mod tests {
   },
   "status": "SUCCESS"
 }"#;
-        check_serialize_to_response(&trx, &exp, &exp_json);
+        check_serialize_to_response(&trx, &exp, exp_json);
     }
 }
