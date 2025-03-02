@@ -6,6 +6,6 @@ where
 {
     let act: E = obj.into();
     assert_eq!(act, *exp);
-    let act_json = serde_json::to_string(&act).expect("serialize to json");
+    let act_json = serde_json::to_string_pretty(&act).expect("serialize to json");
     assert_eq!(act_json, exp_json);
 }

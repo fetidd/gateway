@@ -54,6 +54,18 @@ impl Display for Amount {
 }
 
 impl Amount {
+    pub fn value(&self) -> u64 {
+        match self {
+            Amount::Base { val, .. } | Amount::Decimal { val, .. } => *val,
+        }
+    }
+
+    pub fn currency(&self) -> Currency {
+        match self {
+            Amount::Base { cur, .. } | Amount::Decimal { cur, .. } => *cur,
+        }
+    }
+
     pub fn to_dec(self) -> Self {
         match self {
             Amount::Base { val, cur } => Amount::Decimal { val, cur },

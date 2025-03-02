@@ -20,7 +20,7 @@ pub struct PaymentResponse<'a> {
     // pub security_code: Option<&'a str>,
 }
 
-impl<'a> From<&Payment> for PaymentResponse<'a> {
+impl From<&Payment> for PaymentResponse<'_> {
     fn from(value: &Payment) -> Self {
         match value {
             Payment::Card {
