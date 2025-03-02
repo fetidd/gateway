@@ -1,88 +1,63 @@
-use std::{fmt::Display, marker::PhantomData};
+use std::fmt::Display;
 
 use serde::Serialize;
 
 use crate::currency::Currency;
 
-#[derive(Serialize, Debug, Clone, Copy, PartialEq, Default)]
-pub struct Amount<R: Repr> {
-    pub value: u64,
-    pub currency: Currency,
-    pub _marker: PhantomData<R>,
+#[derive(Serialize, Debug, Clone, Copy, PartialEq)]
+pub enum Amount {
+    Base { val: u64, cur: Currency },
+    Decimal { val: u64, cur: Currency },
 }
 
-impl From<(u64, Currency)> for Amount<BASE> {
-    fn from(value: (u64, Currency)) -> Amount<BASE> {
-        Amount {
-            value: value.0,
-            currency: value.1,
-            _marker: PhantomData {},
+impl From<(u64, Currency)> for Amount {
+    fn from(value: (u64, Currency)) -> Amount {
+        Amount::Base {
+            val: value.0,
+            cur: value.1,
         }
     }
 }
 
-impl From<u64> for Amount<BASE> {
-    fn from(value: u64) -> Amount<BASE> {
-        Amount {
-            value,
-            currency: Currency::default(),
-            _marker: PhantomData {},
+impl From<u64> for Amount {
+    fn from(value: u64) -> Amount {
+        Amount::Base {
+            val: value,
+            cur: Currency::default(),
         }
     }
 }
 
-/// BASE reprsents the Amount as a whole integer.
-/// DEC represents the amount as a decimal if the currency permits.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct BASE;
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct DEC;
-pub trait Repr {}
-impl Repr for BASE {}
-impl Repr for DEC {}
-
-impl Amount<BASE> {
-    fn to_dec(self) -> Amount<DEC> {
-        Amount {
-            value: self.value,
-            currency: self.currency,
-            _marker: PhantomData,
-        }
-    }
-}
-
-impl Display for Amount<BASE> {
+impl Display for Amount {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.value)
-    }
-}
-
-impl Amount<DEC> {
-    fn to_base(self) -> Amount<BASE> {
-        Amount {
-            value: self.value,
-            currency: self.currency,
-            _marker: PhantomData,
+        match self {
+            Amount::Base { val, .. } => write!(f, "{}", val),
+            Amount::Decimal { val, cur } => {
+                let dec_places = cur.get_decimal_places();
+                let mut value = val.to_string();
+                if value == "0" && dec_places > 0 {
+                    value.push_str("00");
+                }
+                if dec_places > 0 {
+                    write!(
+                        f,
+                        "{}.{}",
+                        &value[..dec_places - 1],
+                        &value[dec_places - 1..]
+                    )
+                } else {
+                    write!(f, "{}", value)
+                }
+            }
         }
     }
 }
 
-impl Display for Amount<DEC> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let dec_places = self.currency.get_decimal_places();
-        let mut value = self.value.to_string();
-        if value == "0" && dec_places > 0 {
-            value.push_str("00");
-        }
-        if dec_places > 0 {
-            write!(
-                f,
-                "{}.{}",
-                &value[..dec_places - 1],
-                &value[dec_places - 1..]
-            )
-        } else {
-            write!(f, "{}", value)
+impl Amount {
+    pub fn to_dec(self) -> Self {
+        match self {
+            Amount::Base { val, cur } => Amount::Decimal { val, cur },
+            Amount::Decimal { .. } => self,
         }
     }
 }
@@ -97,11 +72,8 @@ mod tests {
     #[case(Amount::from(123), "123", "1.23")]
     #[case(Amount::from((0, Currency::GBP)), "0", "0.00")]
     #[case(Amount::from((123, Currency::JPY)), "123", "123")]
-    fn test_display(#[case] amount: Amount<BASE>, #[case] exp_base: &str, #[case] exp_dec: &str) {
+    fn test_display(#[case] amount: Amount, #[case] exp_base: &str, #[case] exp_dec: &str) {
         assert_eq!(amount.to_string(), exp_base);
-        let amount = amount.to_dec();
-        assert_eq!(amount.to_string(), exp_dec);
-        let amount = amount.to_base();
-        assert_eq!(amount.to_string(), exp_base);
+        assert_eq!(amount.to_dec().to_string(), exp_dec);
     }
 }

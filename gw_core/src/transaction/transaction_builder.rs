@@ -6,7 +6,7 @@ use super::*;
 #[derive(Default)]
 pub struct TransactionBuilder<A, P, Acc, M, B> {
     transaction_type: Option<TransactionType>,
-    amount: Option<Amount<BASE>>,
+    amount: Option<Amount>,
     payment: Option<Payment>,
     billing: Option<Billing>,
     merchant: Option<Merchant>,
@@ -27,20 +27,6 @@ impl TransactionBuilder<NoAmount, NoPayment, NoAccount, NoMerchant, NoBilling> {
         }
     }
 }
-
-//------------------------------------------------
-
-// macro_rules! builder_states {
-//     ($($field:ident),+) => {
-//         struct _$fieldPresent {}
-//         struct _$fieldMissing {}
-//         trait _Has$field {}
-//         impl _Has$field for _$fieldPresent {}
-//         impl _Has$field for _$fieldMissing {}
-//     };
-// }
-
-// builder_states! {amount, payment, billing, merchant, account}
 
 #[derive(Default)]
 pub struct HasAmount;
@@ -82,115 +68,67 @@ impl TransactionBuilder<HasAmount, HasPayment, HasAccount, HasMerchant, HasBilli
 impl<A: Default, P: Default, Acc: Default, M: Default, B: Default>
     TransactionBuilder<A, P, Acc, M, B>
 {
-    pub fn amount<T: Into<Amount<BASE>>>(
-        self,
-        amount: T,
-    ) -> TransactionBuilder<HasAmount, P, Acc, M, B> {
-        let Self {
-            transaction_type,
-            payment,
-            billing,
-            merchant,
-            account,
-            customer,
-            ..
-        } = self;
+    pub fn amount<T: Into<Amount>>(self, amount: T) -> TransactionBuilder<HasAmount, P, Acc, M, B> {
         TransactionBuilder {
             amount: Some(amount.into()),
-            transaction_type,
-            account,
-            merchant,
-            billing,
-            customer,
-            payment,
+            transaction_type: self.transaction_type,
+            account: self.account,
+            merchant: self.merchant,
+            billing: self.billing,
+            customer: self.customer,
+            payment: self.payment,
             ..Default::default()
         }
     }
 
-    pub fn card(self, card: Payment) -> TransactionBuilder<A, HasPayment, Acc, M, B> {
-        let Self {
-            transaction_type,
-            billing,
-            merchant,
-            account,
-            customer,
-            amount,
-            ..
-        } = self;
+    pub fn payment(self, payment: Payment) -> TransactionBuilder<A, HasPayment, Acc, M, B> {
         TransactionBuilder {
-            amount,
-            transaction_type,
-            account,
-            merchant,
-            billing,
-            customer,
-            payment: Some(card),
+            amount: self.amount,
+            transaction_type: self.transaction_type,
+            account: self.account,
+            merchant: self.merchant,
+            billing: self.billing,
+            customer: self.customer,
+            payment: Some(payment),
             ..Default::default()
         }
     }
 
     pub fn account(self, account: Account) -> TransactionBuilder<A, P, HasAccount, M, B> {
-        let Self {
-            transaction_type,
-            billing,
-            merchant,
-            payment,
-            customer,
-            amount,
-            ..
-        } = self;
         TransactionBuilder {
-            amount,
-            transaction_type,
+            amount: self.amount,
+            transaction_type: self.transaction_type,
             account: Some(account),
-            merchant,
-            billing,
-            customer,
-            payment,
+            merchant: self.merchant,
+            billing: self.billing,
+            customer: self.customer,
+            payment: self.payment,
             ..Default::default()
         }
     }
 
     pub fn merchant(self, merchant: Merchant) -> TransactionBuilder<A, P, Acc, HasMerchant, B> {
-        let Self {
-            transaction_type,
-            billing,
-            payment,
-            account,
-            customer,
-            amount,
-            ..
-        } = self;
         TransactionBuilder {
-            amount,
-            transaction_type,
-            account,
+            amount: self.amount,
+            transaction_type: self.transaction_type,
+            account: self.account,
             merchant: Some(merchant),
-            billing,
-            customer,
-            payment,
+            billing: self.billing,
+            customer: self.customer,
+            payment: self.payment,
             ..Default::default()
         }
     }
 
     pub fn billing(self, billing: Billing) -> TransactionBuilder<A, P, Acc, M, HasBilling> {
-        let Self {
-            transaction_type,
-            merchant,
-            payment,
-            account,
-            customer,
-            amount,
-            ..
-        } = self;
         TransactionBuilder {
-            amount,
-            transaction_type,
-            account,
-            merchant,
+            amount: self.amount,
+            transaction_type: self.transaction_type,
+            account: self.account,
+            merchant: self.merchant,
             billing: Some(billing),
-            customer,
-            payment,
+            customer: self.customer,
+            payment: self.payment,
             ..Default::default()
         }
     }
@@ -216,7 +154,7 @@ mod tests {
         let billing = Billing::default();
         let trx = TransactionBuilder::auth()
             .amount(12345)
-            .card(card)
+            .payment(card)
             .account(acct)
             .billing(billing)
             .merchant(mer);
@@ -224,10 +162,9 @@ mod tests {
         assert_eq!(
             trx,
             Transaction {
-                amount: Amount {
-                    value: 12345,
-                    currency: crate::currency::Currency::GBP,
-                    _marker: PhantomData
+                amount: Amount::Base {
+                    val: 12345,
+                    cur: crate::currency::Currency::GBP,
                 },
                 payment: Payment::Card {
                     scheme: CardScheme::Visa,

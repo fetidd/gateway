@@ -1,11 +1,7 @@
 pub mod transaction_builder;
 
 use crate::{
-    account::Account,
-    amount::{Amount, BASE},
-    billing::Billing,
-    customer::Customer,
-    merchant::Merchant,
+    account::Account, amount::Amount, billing::Billing, customer::Customer, merchant::Merchant,
     payment::Payment,
 };
 
@@ -18,7 +14,7 @@ pub enum TransactionType {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Transaction {
     r#type: TransactionType,
-    amount: Amount<BASE>,
+    amount: Amount,
     payment: Payment,
     billing: Billing,
     merchant: Merchant,
