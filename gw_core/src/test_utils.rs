@@ -2,7 +2,7 @@ use serde_json::Value;
 use validify::{Validate, ValidationError, ValidationErrors};
 
 pub type ExpectedValidationErrors = Vec<(
-    &'static str,               // ValidationError variant
+    ValidationErrorKind,        // ValidationError variant
     &'static str,               // Field name
     &'static str,               // Code
     &'static str,               // Message
@@ -10,17 +10,19 @@ pub type ExpectedValidationErrors = Vec<(
     Vec<(&'static str, Value)>, // Params (name, Value)
 )>;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum ValidationErrorKind { Field, Schema }
+
 pub fn create_validation_errors(errors: ExpectedValidationErrors) -> ValidationErrors {
     errors
         .into_iter()
         .fold(ValidationErrors::new(), |mut errs, (t, n, c, m, l, p)| {
             let mut e = match t {
-                "field" => ValidationError::new_field_named(n, c),
-                "schema" => ValidationError::new_schema(c),
-                _ => panic!("oops"),
+                ValidationErrorKind::Field => ValidationError::new_field_named(n, c),
+                ValidationErrorKind::Schema => ValidationError::new_schema(c),
             }
             .with_message(m.into());
-            if t == "field" {
+            if t == ValidationErrorKind::Field {
                 for (k, v) in p.into_iter() {
                     e.add_param(k, &v);
                 }

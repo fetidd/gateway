@@ -61,17 +61,17 @@ impl From<(CardScheme, ExpiryDate, &str, &str)> for Payment {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{check_validation, ExpectedValidationErrors};
+    use crate::test_utils::{check_validation, ExpectedValidationErrors, ValidationErrorKind as V};
     use rstest::*;
 
     #[rstest]
     #[case((CardScheme::Visa, (2021, 3), "123", "4000111122223333"), vec![])]
-    #[case((CardScheme::Visa, (2021, 3), "12345", "4000111122223333"), vec![("field", "security_code", "length", "invalid length", "security_code", vec![("min", 3.into()), ("max", 4.into()), ("actual", 5.into())])])]
-    #[case((CardScheme::Visa, (2021, 3), "12", "4000111122223333"), vec![("field", "security_code", "length", "invalid length", "security_code", vec![("min", 3.into()), ("max", 4.into()), ("actual", 2.into())])])]
-    #[case((CardScheme::Visa, (2021, 3), "123", "400011112222333"), vec![("field", "pan", "length", "invalid length", "pan", vec![("min", 16.into()), ("max", 20.into()), ("actual", 15.into())])])]
+    #[case((CardScheme::Visa, (2021, 3), "12345", "4000111122223333"), vec![(V::Field, "security_code", "length", "invalid length", "security_code", vec![("min", 3.into()), ("max", 4.into()), ("actual", 5.into())])])]
+    #[case((CardScheme::Visa, (2021, 3), "12", "4000111122223333"), vec![(V::Field, "security_code", "length", "invalid length", "security_code", vec![("min", 3.into()), ("max", 4.into()), ("actual", 2.into())])])]
+    #[case((CardScheme::Visa, (2021, 3), "123", "400011112222333"), vec![(V::Field, "pan", "length", "invalid length", "pan", vec![("min", 16.into()), ("max", 20.into()), ("actual", 15.into())])])]
     #[case((CardScheme::Visa, (2021, 3), "123", "40001111222233334444"), vec![])]
-    #[case((CardScheme::Visa, (2021, 3), "123", "400011112222333344445"), vec![("field", "pan", "length", "invalid length", "pan", vec![("min", 16.into()), ("max", 20.into()), ("actual", 21.into())])])]
-    #[case((CardScheme::Visa, (2021, 3), "12345", "400011112"), vec![("field", "security_code", "length", "invalid length", "security_code", vec![("min", 3.into()), ("max", 4.into()), ("actual", 5.into())]), ("field", "pan", "length", "invalid length", "pan", vec![("min", 16.into()), ("max", 20.into()), ("actual", 9.into())])])]
+    #[case((CardScheme::Visa, (2021, 3), "123", "400011112222333344445"), vec![(V::Field, "pan", "length", "invalid length", "pan", vec![("min", 16.into()), ("max", 20.into()), ("actual", 21.into())])])]
+    #[case((CardScheme::Visa, (2021, 3), "12345", "400011112"), vec![(V::Field, "security_code", "length", "invalid length", "security_code", vec![("min", 3.into()), ("max", 4.into()), ("actual", 5.into())]), (V::Field, "pan", "length", "invalid length", "pan", vec![("min", 16.into()), ("max", 20.into()), ("actual", 9.into())])])]
     fn test_validate_card(
         #[case] inputs: (CardScheme, ExpiryDate, &str, &str),
         #[case] errors: ExpectedValidationErrors,
