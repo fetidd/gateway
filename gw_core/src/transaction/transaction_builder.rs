@@ -172,14 +172,16 @@ mod tests {
             security_code: "123".into(),
         };
         let billing = Billing::default();
-        let trx = TransactionBuilder::new()
+        let trx = {
+            let trx = TransactionBuilder::new()
             .transaction_type(TransactionType::Auth)
             .amount(12345)
             .payment(card)
             .account(acct)
             .billing(billing)
             .merchant(mer);
-        let trx = trx.build();
+            trx.build()
+        };
         assert_eq!(
             trx,
             Transaction {
