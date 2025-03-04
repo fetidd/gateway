@@ -46,7 +46,7 @@ mod tests {
     use super::*;
 
     use gw_core::{
-        account::Account,
+        account::{Account, BankOneAccount},
         billing::Billing,
         card_scheme::CardScheme,
         currency::Currency,
@@ -64,8 +64,8 @@ mod tests {
             security_code: "123".into(),
             pan: "4000111122223333".into(),
         };
-        let acct = Account::BankA {};
-        let mer = Merchant {};
+        let acct = Box::new(BankOneAccount);
+        let mer = Merchant::default();
         let trx = TransactionBuilder::new()
             .transaction_type(TransactionType::Auth)
             .payment(card)

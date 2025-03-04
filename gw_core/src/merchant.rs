@@ -2,7 +2,7 @@ use validify::Validify;
 
 use crate::country::Country;
 
-#[derive(Clone, Debug, PartialEq, Validify)]
+#[derive(Clone, Debug, PartialEq, Validify, Default)]
 pub struct Merchant {
     merchant_id: String,
     #[modify(trim)]

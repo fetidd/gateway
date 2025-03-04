@@ -9,7 +9,7 @@ pub struct TransactionBuilder<T, A, P, Acc, M, B> {
     payment: Option<Payment>,
     billing: Option<Billing>,
     merchant: Option<Merchant>,
-    account: Option<Account>,
+    account: Option<Box<dyn Account>>,
     customer: Option<Customer>,
     _t: PhantomData<T>,
     _a: PhantomData<A>,
@@ -114,7 +114,7 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
         }
     }
 
-    pub fn account(self, account: Account) -> TransactionBuilder<T, A, P, HasAccount, M, B> {
+    pub fn account(self, account: Box<dyn Account>) -> TransactionBuilder<T, A, P, HasAccount, M, B> {
         TransactionBuilder {
             amount: self.amount,
             transaction_type: self.transaction_type,
@@ -156,15 +156,15 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
 
 #[cfg(test)]
 mod tests {
-    use crate::card_scheme::CardScheme;
+    use crate::{account::BankOneAccount, card_scheme::CardScheme};
 
     use super::*;
     use rstest::*;
 
     #[rstest]
     fn build_test_1() {
-        let acct = Account::BankA {};
-        let mer = Merchant {};
+        let acct = Box::new(BankOneAccount);
+        let mer = Merchant::default();
         let card = Payment::Card {
             scheme: CardScheme::Visa,
             expiry_date: (2021, 3),
@@ -197,8 +197,8 @@ mod tests {
                 },
                 r#type: TransactionType::Auth,
                 billing: Billing::default(),
-                merchant: Merchant {},
-                account: Account::BankA {},
+                merchant: Merchant::default(),
+                account: Box::new(BankOneAccount),
                 customer: None,
                 status: TransactionStatus::Success
             }
