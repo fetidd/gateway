@@ -1,4 +1,3 @@
-#[derive(Clone, Debug, PartialEq)]
-pub enum Account {
-    BankA {},
+pub trait Account: std::fmt::Debug {
+    fn hash(&self) -> u64;
 }

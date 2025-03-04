@@ -34,7 +34,7 @@ impl std::fmt::Display for TransactionStatus {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum TransactionError {}
 
-#[derive(Debug, PartialEq, Clone, Validify)]
+#[derive(Debug, Validify)]
 #[validate(validate_transaction)]
 pub struct Transaction {
     pub r#type: TransactionType,
@@ -42,9 +42,22 @@ pub struct Transaction {
     pub payment: Payment,
     pub billing: Billing,
     pub merchant: Merchant,
-    pub account: Account,
+    pub account: Box<dyn Account>,
     pub customer: Option<Customer>,
     pub status: TransactionStatus,
+}
+
+impl PartialEq<Transaction> for Transaction {
+    fn eq(&self, other: &Transaction) -> bool {
+        self.r#type == other.r#type
+            && self.amount == other.amount
+            && self.payment == other.payment
+            && self.billing == other.billing
+            && self.merchant == other.merchant
+            && self.customer == other.customer
+            && self.status == other.status
+            && self.account.hash() == other.account.hash()
+    }
 }
 
 #[schema_validation]
@@ -64,8 +77,7 @@ mod tests {
         //         .amount(12345)
         //         .payment(payment)
         //         .billing(billing)
-                
-              
+
         //     t.build()
         // };
     }
