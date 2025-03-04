@@ -17,7 +17,6 @@ pub struct PaymentRequest {
 mod tests {
     use super::*;
     use rstest::*;
-    use serde::de::Error;
 
     #[rstest]
     fn deserialize_card() {
