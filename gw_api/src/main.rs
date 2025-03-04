@@ -22,5 +22,5 @@ struct AppState {}
 
 #[instrument]
 async fn handle_post_transaction(Json(payload): Json<TransactionRequest>) -> impl IntoResponse {
-    (StatusCode::CREATED, Json(json!({"name": "derp"})))
+    (StatusCode::IM_A_TEAPOT, Json(json!({"name": "derp"})))
 }
