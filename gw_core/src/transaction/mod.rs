@@ -1,6 +1,6 @@
 pub mod transaction_builder;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use validify::{schema_validation, ValidationErrors, Validify};
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
     payment::Payment,
 };
 
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum TransactionType {
     Auth,
     Refund,
