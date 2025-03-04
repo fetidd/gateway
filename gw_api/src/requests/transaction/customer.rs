@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 #[derive(Deserialize, Default, Debug)]
-pub struct BillingRequest {
+pub struct CustomerRequest {
     first_name: Option<String>,
     last_name: Option<String>,
     premise: Option<String>,

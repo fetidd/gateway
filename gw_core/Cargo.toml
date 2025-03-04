@@ -11,3 +11,4 @@ validify = "2.0.0"
 
 [dev-dependencies]
 rstest = "0.24.0"
+serde_test = "1.0.177"
