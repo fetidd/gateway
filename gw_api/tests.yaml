@@ -3,11 +3,13 @@ transaction:
     path: /transaction
     method: POST
     json:
-      baseamount: 20000
+      amount: 20000
+      transaction_type: Auth
+      merchant_id: "merchant123"
       payment:
-        type: CARD
+        payment_type: CARD
         scheme: VISA
-        account_number: "1234123412341234"
+        pan: "1234123412341234"
         expiry_year: 2021
         expiry_month: 12
         security_code: "123"
