@@ -40,3 +40,10 @@ impl std::fmt::Display for GatewayError {
 }
 
 impl std::error::Error for GatewayError {}
+
+impl From<validify::ValidationErrors> for GatewayError {
+    fn from(value: validify::ValidationErrors) -> Self {
+        dbg!(value);
+        GatewayError { kind: ErrorKind::Validation, message: String::from("TODO VAL ERROR") }
+    }
+}

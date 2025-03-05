@@ -1,11 +1,11 @@
-mod billing;
-mod customer;
+pub mod billing;
+pub mod customer;
 pub mod payment;
-mod transaction_option;
+pub mod transaction_option;
 
 use billing::BillingRequest;
 use customer::CustomerRequest;
-use gw_core::{payment::Payment, transaction::TransactionType};
+use gw_core::transaction::TransactionType;
 use payment::PaymentRequest;
 use serde::Deserialize;
 use transaction_option::TransactionOptionRequest;
@@ -25,4 +25,13 @@ impl TransactionRequest {
     pub fn take_payment_data(&mut self) -> Option<PaymentRequest> {
         self.payment.take()
     }
+    pub fn take_billing_data(&mut self) -> Option<BillingRequest> {
+        self.billing.take()
+    }
+    // pub fn take_customer_data(&mut self) -> Option<CustomerRequest> {
+    //     self.customer.take()
+    // }
+    // pub fn take_options_data(&mut self) -> Option<OptionsRequest> {
+    //     self.options.take()
+    // }
 }

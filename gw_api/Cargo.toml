@@ -1,16 +1,18 @@
 [package]
 name = "gw_api"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 axum = { version = "0.8.1", features = ["macros"] }
+eval-macro = "0.5.0"
 gw_core = { path = "../gw_core" }
 serde = { version = "1.0.218", features = ["derive"] }
 serde_json = "1.0.139"
 tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
+validify = "2.0.0"
 
 [dev-dependencies]
 rstest = "0.24.0"

@@ -18,17 +18,23 @@ transaction:
         last_name: Jones
         address: Oakwood, Llandudno Junction
         postcode: LL31 9AY
+        country: GB
     expected:
       status_code: 201
       json:
-        baseamount: 20000
+        amount: 20000
+        billing:
+          country: GB
+          first_name: Ben
+          last_name: Jones
+        currency: GBP
         payment:
-          type: CARD
-          scheme: VISA
-          account_number: "123412######1234"
-          expiry_year: 2021
           expiry_month: 12
-        result: success
+          expiry_year: 2021
+          pan: 123412######1234
+          scheme: VISA
+          type: CARD
+        status: SUCCESS
 
   cases:
     - name: Basic success
@@ -49,16 +55,30 @@ transaction:
         status_code: 400
         json:
           payment: null
-          baseamount: null
-          result: failed
+          billing: null
+          amount: null
+          result: null
+          currency: null
+          result: null
+          status: null
+          error: VALIDATION
+          message: missing payment data
 
     - name: Invalid payment field
       description: Malformed payment object
       json:
         payment:
-          oops: derp
+          payment_type: "NOPE"
       expected:
-        status_code: 422
-        json: null
-        
+        status_code: 400
+        json:
+          payment: null
+          billing: null
+          amount: null
+          result: null
+          currency: null
+          result: null
+          status: null
+          error: VALIDATION
+          message: "ValidationError: NOPE is not a valid payment type"
     

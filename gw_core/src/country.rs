@@ -16,3 +16,15 @@ impl std::fmt::Display for Country {
         write!(f, "{c}")
     }
 }
+
+impl TryFrom<String> for Country {
+    fn try_from(value: String) -> Result<Country, String> {
+        match value.as_str() {
+            "GB" => Ok(Self::GB),
+            "US" => Ok(Self::US),
+            invalid => Err(format!("{invalid} is not a valid country code"))
+        }
+    }
+
+    type Error = String;
+}

@@ -1,4 +1,8 @@
+use gw_core::billing::Billing;
 use serde::Deserialize;
+
+use crate::error::GatewayError;
+use crate::error::ErrorKind::Validation;
 
 #[derive(Deserialize, Default, Debug)]
 pub struct BillingRequest {
@@ -9,4 +13,20 @@ pub struct BillingRequest {
     city: Option<String>,
     county: Option<String>,
     country: Option<String>,
+}
+
+impl TryFrom<BillingRequest> for Billing {
+    fn try_from(value: BillingRequest) -> Result<Self, GatewayError> {
+        Ok(Billing {
+            first_name: value.first_name.unwrap_or_default(),
+            last_name: value.last_name.unwrap_or_default(),
+            premise: value.premise.unwrap_or_default(),
+            street: value.street.unwrap_or_default(),
+            city: value.city.unwrap_or_default(),
+            county: value.county.unwrap_or_default(),
+            country: value.country.unwrap_or_default().try_into().map_err(|e| GatewayError { kind: Validation, message: e })?,
+        })
+    }
+
+    type Error = GatewayError;
 }
