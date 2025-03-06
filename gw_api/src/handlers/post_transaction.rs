@@ -35,10 +35,15 @@ pub async fn handle_post_transaction(
         }
     };
     // let customer_data = extract_customer_data(&mut payload);
-    // let merchant_id = payload.merchant_id;
+    let merchant_id = payload.merchant_id;
     // get merchant record from database
-    // let merchant_data = app.merchant_db.select(merchant_id);
-    let merchant_data = Merchant::default();
+    let app_access = app.lock().await;
+    let merchant_data = match app_access.merchant_db.select_merchant(&merchant_id).await.map_err(|e| GatewayError::from(e)) {
+        Ok(merchant) => merchant,
+        Err(e) => {
+            return e.into_response();
+        },
+    };
     // get account record from database
     // let account_data = app.account_db.select(&payment_data);
     let account_data = Box::new(BankOneAccount {});
@@ -64,17 +69,18 @@ pub async fn handle_post_transaction(
 }
 
 fn extract_payment_data(payload: &mut TransactionRequest) -> Result<Payment, GatewayError> {
-    extract_trx_data(payload, TransactionRequest::take_payment_data)
+    extract_trx_data(payload, TransactionRequest::take_payment_data, "payment")
 }
 
 fn extract_billing_data(payload: &mut TransactionRequest) -> Result<Billing, GatewayError> {
-    extract_trx_data(payload, TransactionRequest::take_billing_data)
+    extract_trx_data(payload, TransactionRequest::take_billing_data, "billing")
 }
 
 #[instrument]
 fn extract_trx_data<T, R>(
     payload: &mut TransactionRequest,
     extract_fn: fn(&mut TransactionRequest) -> Option<R>,
+    field: &str
 ) -> Result<T, GatewayError>
 where
     R: TryInto<T>,
@@ -91,7 +97,7 @@ where
     } else {
         Err(GatewayError {
             kind: ErrorKind::Validation,
-            message: String::from("missing  data"),
+            message: format!("missing {field} data"),
         })
     }
 }

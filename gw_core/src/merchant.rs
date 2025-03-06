@@ -4,20 +4,20 @@ use crate::country::Country;
 
 #[derive(Clone, Debug, PartialEq, Validify, Default)]
 pub struct Merchant {
-    merchant_id: String,
+    pub merchant_id: String,
     #[modify(trim)]
-    name: String,
+    pub name: String,
     #[modify(trim)]
-    premise: String,
+    pub premise: String,
     #[modify(trim)]
-    street: String,
+    pub street: String,
     #[modify(trim)]
-    city: String,
+    pub city: String,
     #[modify(trim)]
-    postcode: String,
+    pub postcode: String,
     #[modify(trim)]
-    county: String,
-    country: Country,
+    pub county: String,
+    pub country: Country,
 }
 
 #[cfg(test)]

@@ -6,7 +6,7 @@ use gw_api::{
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
-    let app_state = create_appstate();
+    let app_state = create_appstate().await;
     let app = Router::new()
         .route("/transaction", post(handle_post_transaction))
         .with_state(app_state);
