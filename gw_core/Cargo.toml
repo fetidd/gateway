@@ -1,13 +1,15 @@
 [package]
 name = "gw_core"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.218", features = ["derive"] }
 serde_json = "1.0.139"
 tracing = "0.1.41"
 validify = "2.0.0"
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "macros", "derive", "postgres"] }
+tokio = { version = "1.43.0", features = ["macros"] }
 
 [dev-dependencies]
 rstest = "0.24.0"
