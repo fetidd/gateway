@@ -29,7 +29,6 @@ impl AppStateInner {
 pub type AppState = Arc<Mutex<AppStateInner>>;
 
 pub async fn create_appstate() -> AppState {
-    let db_name = std::env::var("DATABASE_NAME").expect("DATABASE_NAME env variable not set");
-    let db_path = format!("postgresql://localhost/{db_name}?user=gwuser&password=gwpass");
-    Arc::new(Mutex::new(AppStateInner::new(&db_path).await))
+    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL env variable not set");
+    Arc::new(Mutex::new(AppStateInner::new(&db_url).await))
 }
