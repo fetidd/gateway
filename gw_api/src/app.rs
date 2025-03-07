@@ -1,16 +1,25 @@
-use gw_core::repo::merchant::MerchantDb;
+use axum::{routing::post, Router};
+use gw_core::repo::merchant::MerchantRepo;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+use crate::handlers::post_transaction::handle_post_transaction;
+
+pub fn create_router(app_state: AppState) -> Router {
+    Router::new()
+        .route("/transaction", post(handle_post_transaction))
+        .with_state(app_state)
+}
+
 #[derive(Debug, Clone)]
 pub struct AppStateInner {
-    pub merchant_db: MerchantDb,
+    pub merchant_repo: MerchantRepo,
 }
 
 impl AppStateInner {
     pub async fn new(db_path: &str) -> AppStateInner {
         AppStateInner {
-            merchant_db: MerchantDb::connect(db_path)
+            merchant_repo: MerchantRepo::connect(db_path)
                 .await
                 .expect("failed to create app state"),
         }

@@ -16,5 +16,8 @@ tracing-subscriber = "0.3.19"
 validify = "2.0.0"
 
 [dev-dependencies]
+axum-test = "17.2.0"
+pretty_assertions = "1.4.1"
 rstest = "0.24.0"
 serde_test = "1.0.177"
+wiremock = "0.6.3"

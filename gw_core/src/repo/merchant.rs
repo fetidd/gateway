@@ -6,18 +6,18 @@ use sqlx::{postgres::PgPoolOptions, PgPool};
 use super::Repo;
 
 #[derive(Debug, Clone)]
-pub struct MerchantDb {
+pub struct MerchantRepo {
     pool: PgPool,
 }
 
-impl MerchantDb {
-    pub async fn connect(path: &str) -> Result<MerchantDb, DatabaseError> {
+impl MerchantRepo {
+    pub async fn connect(path: &str) -> Result<MerchantRepo, DatabaseError> {
         let pool = PgPoolOptions::new()
             .max_connections(5)
             .connect(path)
             .await
             .map_err(|e| DatabaseError::from(e))?;
-        Ok(MerchantDb { pool })
+        Ok(MerchantRepo { pool })
     }
 
     pub async fn select_merchant(&self, id: &str) -> Result<Merchant, DatabaseError> {
@@ -25,7 +25,7 @@ impl MerchantDb {
     }
 }
 
-impl Repo for MerchantDb {
+impl Repo for MerchantRepo {
     type Domain = Merchant;
     type Record = MerchantRecord;
     type Id = String;

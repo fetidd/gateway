@@ -38,7 +38,7 @@ pub async fn handle_post_transaction(
     let merchant_id = payload.merchant_id;
     let app_access = app.lock().await;
     let merchant_data = match app_access
-        .merchant_db
+        .merchant_repo
         .select_merchant(&merchant_id)
         .await
         .map_err(|e| GatewayError::from(e))
