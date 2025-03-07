@@ -1,4 +1,4 @@
-use gw_core::merchant_db::MerchantDb;
+use gw_core::repo::merchant::MerchantDb;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
