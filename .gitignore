@@ -1,4 +1,4 @@
 target/
 apitest/
-postgres
-postgres
+gateway_db
+logfile

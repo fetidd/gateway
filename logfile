@@ -6,3 +6,280 @@
 2025-03-05 21:21:53.455 GMT [19565] FATAL:  database "u0_a409" does not exist
 2025-03-05 21:25:59.418 GMT [19378] LOG:  checkpoint starting: time
 2025-03-05 21:26:03.804 GMT [19378] LOG:  checkpoint complete: wrote 46 buffers (0.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=4.353 s, sync=0.010 s, total=4.388 s; sync files=11, longest=0.004 s, average=0.001 s; distance=270 kB, estimate=270 kB; lsn=0/1530088, redo lsn=0/152FFE0
+2025-03-06 17:46:39.089 GMT [2556] ERROR:  could not open shared memory segment "pg_dynshmem/mmap.1164680876": No such file or directory
+2025-03-06 17:47:00.312 GMT [2681] FATAL:  could not open file "global/pg_filenode.map": No such file or directory
+2025-03-06 17:47:00.314 GMT [2682] FATAL:  could not open file "global/pg_filenode.map": No such file or directory
+2025-03-06 17:47:09.086 GMT [19374] LOG:  could not open file "postmaster.pid": No such file or directory
+2025-03-06 17:47:09.086 GMT [19374] LOG:  performing immediate shutdown because data directory lock file is invalid
+2025-03-06 17:47:09.086 GMT [19374] LOG:  received immediate shutdown request
+2025-03-06 17:47:09.086 GMT [19374] LOG:  could not open file "postmaster.pid": No such file or directory
+2025-03-06 17:47:09.108 GMT [19374] LOG:  could not remove shared memory segment "pg_dynshmem/mmap.1164680876": No such file or directory
+2025-03-06 17:47:09.108 GMT [19374] LOG:  could not remove shared memory segment "pg_dynshmem/mmap.2910788178": No such file or directory
+2025-03-06 17:47:09.116 GMT [19374] LOG:  database system is shut down
+2025-03-06 21:34:27.663 GMT [11680] LOG:  starting PostgreSQL 17.0 on aarch64-unknown-linux-android, compiled by Android (12470979, +pgo, +bolt, +lto, +mlgo, based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262), 64-bit
+2025-03-06 21:34:27.666 GMT [11680] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-03-06 21:34:27.667 GMT [11680] LOG:  listening on Unix socket "/data/data/com.termux/files/usr/tmp/.s.PGSQL.5432"
+2025-03-06 21:34:27.673 GMT [11695] LOG:  database system was shut down at 2025-03-06 21:34:08 GMT
+2025-03-06 21:34:27.679 GMT [11680] LOG:  database system is ready to accept connections
+2025-03-06 21:36:13.224 GMT [12497] FATAL:  database "u0_a409" does not exist
+2025-03-06 21:36:25.143 GMT [12660] FATAL:  database "gateway_db" does not exist
+2025-03-06 21:37:35.333 GMT [12866] FATAL:  database "gw_database" does not exist
+2025-03-06 21:39:23.435 GMT [13410] FATAL:  database "u0_a409" does not exist
+2025-03-06 21:39:27.680 GMT [11691] LOG:  checkpoint starting: time
+2025-03-06 21:39:29.105 GMT [13473] FATAL:  database "u0_a409" does not exist
+2025-03-06 21:41:06.286 GMT [11691] LOG:  checkpoint complete: wrote 977 buffers (6.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=98.548 s, sync=0.033 s, total=98.607 s; sync files=310, longest=0.004 s, average=0.001 s; distance=4535 kB, estimate=4535 kB; lsn=0/195A5F8, redo lsn=0/195A568
+2025-03-06 21:42:52.145 GMT [14376] FATAL:  role "gwuser" does not exist
+2025-03-06 21:43:11.753 GMT [14478] ERROR:  table "merchant" does not exist
+2025-03-06 21:43:11.753 GMT [14478] STATEMENT:  DROP TABLE merchant;
+2025-03-06 21:43:11.759 GMT [14478] ERROR:  role "gwuser" does not exist
+2025-03-06 21:43:11.759 GMT [14478] STATEMENT:  DROP USER gwuser;
+2025-03-06 21:44:26.262 GMT [14744] FATAL:  database "gateway" does not exist
+2025-03-06 21:44:27.315 GMT [11691] LOG:  checkpoint starting: time
+2025-03-06 21:44:33.327 GMT [11691] LOG:  checkpoint complete: wrote 60 buffers (0.4%); 0 WAL file(s) added, 0 removed, 0 recycled; write=5.981 s, sync=0.016 s, total=6.013 s; sync files=46, longest=0.004 s, average=0.001 s; distance=170 kB, estimate=4099 kB; lsn=0/1984E78, redo lsn=0/1984E20
+2025-03-06 21:46:04.306 GMT [15100] FATAL:  database "gateway" does not exist
+2025-03-06 22:46:33.112 GMT [577] ERROR:  table "bankone_account" does not exist
+2025-03-06 22:46:33.112 GMT [577] STATEMENT:  DROP TABLE bankone_account;
+2025-03-06 22:46:33.113 GMT [577] ERROR:  table "banktwo_account" does not exist
+2025-03-06 22:46:33.113 GMT [577] STATEMENT:  DROP TABLE banktwo_account;
+2025-03-06 22:46:33.113 GMT [577] ERROR:  syntax error at or near ")" at character 91
+2025-03-06 22:46:33.113 GMT [577] STATEMENT:  CREATE TABLE bankone_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255),
+	);
+2025-03-06 22:46:33.113 GMT [577] ERROR:  syntax error at or near ")" at character 91
+2025-03-06 22:46:33.113 GMT [577] STATEMENT:  CREATE TABLE banktwo_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255),
+	);
+2025-03-06 22:46:33.114 GMT [577] ERROR:  relation "bankone_account" does not exist at character 13
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  INSERT INTO bankone_account  VALUES (0, 'merchant123');
+2025-03-06 22:46:33.114 GMT [577] ERROR:  relation "banktwo_account" does not exist at character 13
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  INSERT INTO banktwo_account  VALUES (1, 'merchant123');
+2025-03-06 22:46:33.114 GMT [577] ERROR:  relation "bankone_account" does not exist
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  GRANT ALL ON bankone_account TO gwuser;
+2025-03-06 22:46:33.114 GMT [577] ERROR:  relation "banktwo_account" does not exist
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  GRANT ALL ON banktwo_account TO gwuser;
+2025-03-06 22:46:33.114 GMT [577] ERROR:  syntax error at or near ""VISA"" at character 29
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  CREATE TYPE scheme AS ENUM ("VISA", "NASTERCARD");
+2025-03-06 22:46:33.114 GMT [577] ERROR:  syntax error at or near ""GBP"" at character 31
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  CREATE TYPE currency AS ENUM ("GBP", "USD");
+2025-03-06 22:46:33.114 GMT [577] ERROR:  syntax error at or near ""bankone"" at character 27
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  CREATE TYPE bank AS ENUM ("bankone", "banktwo");
+2025-03-06 22:46:33.114 GMT [577] ERROR:  table "paymentroute" does not exist
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  DROP TABLE paymentroute;
+2025-03-06 22:46:33.114 GMT [577] ERROR:  type "scheme" does not exist at character 40
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  CREATE TABLE paymentroute (
+	    scheme scheme,
+	    currency currency,
+	    merchant_id varchar(255) REFERENCES merchant,
+	    account_id integer,
+	    bank bank,
+	    PRIMARY KEY (scheme, currency, merchant_id)
+	);
+2025-03-06 22:46:33.114 GMT [577] ERROR:  relation "paymentroute" does not exist at character 13
+2025-03-06 22:46:33.114 GMT [577] STATEMENT:  INSERT INTO paymentroute VALUES (
+	    ("VISA", "GBP", "merchant123", 0, "bankone"),
+	    ("VISA", "USD", "merchant123", 0, "bankone")
+	);
+2025-03-06 22:46:33.115 GMT [577] ERROR:  relation "paymentroute" does not exist
+2025-03-06 22:46:33.115 GMT [577] STATEMENT:  GRANT ALL ON paymentroute TO gwuser;
+2025-03-06 22:47:35.287 GMT [1898] ERROR:  table "bankone_account" does not exist
+2025-03-06 22:47:35.287 GMT [1898] STATEMENT:  DROP TABLE bankone_account;
+2025-03-06 22:47:35.288 GMT [1898] ERROR:  table "banktwo_account" does not exist
+2025-03-06 22:47:35.288 GMT [1898] STATEMENT:  DROP TABLE banktwo_account;
+2025-03-06 22:47:35.288 GMT [1898] ERROR:  syntax error at or near ")" at character 91
+2025-03-06 22:47:35.288 GMT [1898] STATEMENT:  CREATE TABLE bankone_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255),
+	);
+2025-03-06 22:47:35.288 GMT [1898] ERROR:  syntax error at or near ")" at character 91
+2025-03-06 22:47:35.288 GMT [1898] STATEMENT:  CREATE TABLE banktwo_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255),
+	);
+2025-03-06 22:47:35.288 GMT [1898] ERROR:  relation "bankone_account" does not exist at character 13
+2025-03-06 22:47:35.288 GMT [1898] STATEMENT:  INSERT INTO bankone_account  VALUES (0, 'merchant123');
+2025-03-06 22:47:35.288 GMT [1898] ERROR:  relation "banktwo_account" does not exist at character 13
+2025-03-06 22:47:35.288 GMT [1898] STATEMENT:  INSERT INTO banktwo_account  VALUES (1, 'merchant123');
+2025-03-06 22:47:35.288 GMT [1898] ERROR:  relation "bankone_account" does not exist
+2025-03-06 22:47:35.288 GMT [1898] STATEMENT:  GRANT ALL ON bankone_account TO gwuser;
+2025-03-06 22:47:35.288 GMT [1898] ERROR:  relation "banktwo_account" does not exist
+2025-03-06 22:47:35.288 GMT [1898] STATEMENT:  GRANT ALL ON banktwo_account TO gwuser;
+2025-03-06 22:47:35.291 GMT [1898] ERROR:  table "paymentroute" does not exist
+2025-03-06 22:47:35.291 GMT [1898] STATEMENT:  DROP TABLE paymentroute;
+2025-03-06 22:47:35.297 GMT [1898] ERROR:  column "scheme" is of type scheme but expression is of type record at character 39
+2025-03-06 22:47:35.297 GMT [1898] HINT:  You will need to rewrite or cast the expression.
+2025-03-06 22:47:35.297 GMT [1898] STATEMENT:  INSERT INTO paymentroute VALUES (
+	    ('VISA', 'GBP', 'merchant123', 0, 'bankone'),
+	    ('VISA', 'USD', 'merchant123', 0, 'bankone')
+	);
+2025-03-06 22:48:06.707 GMT [1982] ERROR:  cannot drop table merchant because other objects depend on it
+2025-03-06 22:48:06.707 GMT [1982] DETAIL:  constraint paymentroute_merchant_id_fkey on table paymentroute depends on table merchant
+2025-03-06 22:48:06.707 GMT [1982] HINT:  Use DROP ... CASCADE to drop the dependent objects too.
+2025-03-06 22:48:06.707 GMT [1982] STATEMENT:  DROP TABLE merchant;
+2025-03-06 22:48:06.707 GMT [1982] ERROR:  relation "merchant" already exists
+2025-03-06 22:48:06.707 GMT [1982] STATEMENT:  CREATE TABLE merchant (
+	    id  varchar(255) PRIMARY KEY,
+	    name  varchar(255) DEFAULT '',
+	    premise  varchar(255) DEFAULT '',
+	    street  varchar(255) DEFAULT '',
+	    city  varchar(255) DEFAULT '',
+	    postcode varchar(255) DEFAULT '',
+	    county  varchar(255) DEFAULT '',
+	    country  char(2) DEFAULT 'GB'
+	);
+2025-03-06 22:48:06.708 GMT [1982] ERROR:  duplicate key value violates unique constraint "merchant_pkey"
+2025-03-06 22:48:06.708 GMT [1982] DETAIL:  Key (id)=(merchant123) already exists.
+2025-03-06 22:48:06.708 GMT [1982] STATEMENT:  INSERT INTO merchant VALUES ('merchant123', 'Test Merchant', 'Premise', 'Street', 'City', 'Postcode', 'County', 'GB');
+2025-03-06 22:48:06.708 GMT [1982] ERROR:  role "gwuser" cannot be dropped because some objects depend on it
+2025-03-06 22:48:06.708 GMT [1982] DETAIL:  privileges for table merchant
+	privileges for table paymentroute
+2025-03-06 22:48:06.708 GMT [1982] STATEMENT:  DROP USER gwuser;
+2025-03-06 22:48:06.708 GMT [1982] ERROR:  role "gwuser" already exists
+2025-03-06 22:48:06.708 GMT [1982] STATEMENT:  CREATE USER gwuser WITH PASSWORD 'gwpass';
+2025-03-06 22:48:06.710 GMT [1982] ERROR:  table "bankone_account" does not exist
+2025-03-06 22:48:06.710 GMT [1982] STATEMENT:  DROP TABLE bankone_account;
+2025-03-06 22:48:06.710 GMT [1982] ERROR:  table "banktwo_account" does not exist
+2025-03-06 22:48:06.710 GMT [1982] STATEMENT:  DROP TABLE banktwo_account;
+2025-03-06 22:48:06.710 GMT [1982] ERROR:  syntax error at or near ")" at character 91
+2025-03-06 22:48:06.710 GMT [1982] STATEMENT:  CREATE TABLE bankone_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255),
+	);
+2025-03-06 22:48:06.710 GMT [1982] ERROR:  syntax error at or near ")" at character 91
+2025-03-06 22:48:06.710 GMT [1982] STATEMENT:  CREATE TABLE banktwo_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255),
+	);
+2025-03-06 22:48:06.711 GMT [1982] ERROR:  relation "bankone_account" does not exist at character 13
+2025-03-06 22:48:06.711 GMT [1982] STATEMENT:  INSERT INTO bankone_account  VALUES (0, 'merchant123');
+2025-03-06 22:48:06.711 GMT [1982] ERROR:  relation "banktwo_account" does not exist at character 13
+2025-03-06 22:48:06.711 GMT [1982] STATEMENT:  INSERT INTO banktwo_account  VALUES (1, 'merchant123');
+2025-03-06 22:48:06.711 GMT [1982] ERROR:  relation "bankone_account" does not exist
+2025-03-06 22:48:06.711 GMT [1982] STATEMENT:  GRANT ALL ON bankone_account TO gwuser;
+2025-03-06 22:48:06.711 GMT [1982] ERROR:  relation "banktwo_account" does not exist
+2025-03-06 22:48:06.711 GMT [1982] STATEMENT:  GRANT ALL ON banktwo_account TO gwuser;
+2025-03-06 22:48:06.711 GMT [1982] ERROR:  type "scheme" already exists
+2025-03-06 22:48:06.711 GMT [1982] STATEMENT:  CREATE TYPE scheme AS ENUM ('VISA', 'NASTERCARD');
+2025-03-06 22:48:06.711 GMT [1982] ERROR:  type "currency" already exists
+2025-03-06 22:48:06.711 GMT [1982] STATEMENT:  CREATE TYPE currency AS ENUM ('GBP', 'USD');
+2025-03-06 22:48:06.711 GMT [1982] ERROR:  type "bank" already exists
+2025-03-06 22:48:06.711 GMT [1982] STATEMENT:  CREATE TYPE bank AS ENUM ('bankone', 'banktwo');
+2025-03-06 22:49:28.537 GMT [11691] LOG:  checkpoint starting: time
+2025-03-06 22:49:36.962 GMT [11691] LOG:  checkpoint complete: wrote 83 buffers (0.5%); 0 WAL file(s) added, 0 removed, 0 recycled; write=8.389 s, sync=0.021 s, total=8.426 s; sync files=60, longest=0.004 s, average=0.001 s; distance=299 kB, estimate=3719 kB; lsn=0/19CFB18, redo lsn=0/19CFA88
+2025-03-06 22:51:57.258 GMT [3619] ERROR:  table "account" does not exist
+2025-03-06 22:51:57.258 GMT [3619] STATEMENT:  DROP TABLE account;
+2025-03-06 22:51:57.273 GMT [3619] ERROR:  syntax error at or near ")" at character 91
+2025-03-06 22:51:57.273 GMT [3619] STATEMENT:  CREATE TABLE bankone_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255),
+	);
+2025-03-06 22:51:57.273 GMT [3619] ERROR:  syntax error at or near ")" at character 91
+2025-03-06 22:51:57.273 GMT [3619] STATEMENT:  CREATE TABLE banktwo_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255),
+	);
+2025-03-06 22:51:57.274 GMT [3619] ERROR:  relation "bankone_account" does not exist at character 13
+2025-03-06 22:51:57.274 GMT [3619] STATEMENT:  INSERT INTO bankone_account  VALUES (0, 'merchant123');
+2025-03-06 22:51:57.274 GMT [3619] ERROR:  relation "banktwo_account" does not exist at character 13
+2025-03-06 22:51:57.274 GMT [3619] STATEMENT:  INSERT INTO banktwo_account  VALUES (1, 'merchant123');
+2025-03-06 22:51:57.274 GMT [3619] ERROR:  relation "bankone_account" does not exist
+2025-03-06 22:51:57.274 GMT [3619] STATEMENT:  GRANT ALL ON bankone_account TO gwuser;
+2025-03-06 22:51:57.274 GMT [3619] ERROR:  relation "banktwo_account" does not exist
+2025-03-06 22:51:57.274 GMT [3619] STATEMENT:  GRANT ALL ON banktwo_account TO gwuser;
+2025-03-06 22:51:57.274 GMT [3619] ERROR:  type "scheme" already exists
+2025-03-06 22:51:57.274 GMT [3619] STATEMENT:  CREATE TYPE scheme AS ENUM ('VISA', 'NASTERCARD');
+2025-03-06 22:51:57.274 GMT [3619] ERROR:  type "currency" already exists
+2025-03-06 22:51:57.274 GMT [3619] STATEMENT:  CREATE TYPE currency AS ENUM ('GBP', 'USD');
+2025-03-06 22:51:57.274 GMT [3619] ERROR:  type "bank" already exists
+2025-03-06 22:51:57.274 GMT [3619] STATEMENT:  CREATE TYPE bank AS ENUM ('bankone', 'banktwo');
+2025-03-06 22:52:35.133 GMT [3931] ERROR:  table "account" does not exist
+2025-03-06 22:52:35.133 GMT [3931] STATEMENT:  DROP TABLE account;
+2025-03-06 22:52:35.155 GMT [3931] ERROR:  type "scheme" already exists
+2025-03-06 22:52:35.155 GMT [3931] STATEMENT:  CREATE TYPE scheme AS ENUM ('VISA', 'NASTERCARD');
+2025-03-06 22:52:35.155 GMT [3931] ERROR:  type "currency" already exists
+2025-03-06 22:52:35.155 GMT [3931] STATEMENT:  CREATE TYPE currency AS ENUM ('GBP', 'USD');
+2025-03-06 22:52:35.155 GMT [3931] ERROR:  type "bank" already exists
+2025-03-06 22:52:35.155 GMT [3931] STATEMENT:  CREATE TYPE bank AS ENUM ('bankone', 'banktwo');
+2025-03-06 22:54:28.963 GMT [11691] LOG:  checkpoint starting: time
+2025-03-06 22:54:38.491 GMT [11691] LOG:  checkpoint complete: wrote 95 buffers (0.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=9.489 s, sync=0.022 s, total=9.529 s; sync files=63, longest=0.004 s, average=0.001 s; distance=441 kB, estimate=3391 kB; lsn=0/1A3E148, redo lsn=0/1A3E0F0
+2025-03-06 22:54:44.439 GMT [5415] ERROR:  table "account" does not exist
+2025-03-06 22:54:44.439 GMT [5415] STATEMENT:  DROP TABLE account;
+2025-03-06 22:54:44.442 GMT [5415] ERROR:  type "account" does not exist
+2025-03-06 22:54:44.442 GMT [5415] STATEMENT:  DROP TYPE account;
+2025-03-06 22:54:44.448 GMT [5415] ERROR:  role "gwuser" cannot be dropped because some objects depend on it
+2025-03-06 22:54:44.448 GMT [5415] DETAIL:  privileges for table bankone_account
+	privileges for table banktwo_account
+2025-03-06 22:54:44.448 GMT [5415] STATEMENT:  DROP USER gwuser;
+2025-03-06 22:54:44.448 GMT [5415] ERROR:  role "gwuser" already exists
+2025-03-06 22:54:44.448 GMT [5415] STATEMENT:  CREATE USER gwuser WITH PASSWORD 'gwpass';
+2025-03-06 22:54:44.448 GMT [5415] ERROR:  relation "bankone_account" already exists
+2025-03-06 22:54:44.448 GMT [5415] STATEMENT:  CREATE TABLE bankone_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255)
+	);
+2025-03-06 22:54:44.448 GMT [5415] ERROR:  relation "banktwo_account" already exists
+2025-03-06 22:54:44.448 GMT [5415] STATEMENT:  CREATE TABLE banktwo_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255)
+	);
+2025-03-06 22:54:44.449 GMT [5415] ERROR:  duplicate key value violates unique constraint "bankone_account_pkey"
+2025-03-06 22:54:44.449 GMT [5415] DETAIL:  Key (id)=(0) already exists.
+2025-03-06 22:54:44.449 GMT [5415] STATEMENT:  INSERT INTO bankone_account  VALUES (0, 'merchant123');
+2025-03-06 22:54:44.449 GMT [5415] ERROR:  duplicate key value violates unique constraint "banktwo_account_pkey"
+2025-03-06 22:54:44.449 GMT [5415] DETAIL:  Key (id)=(1) already exists.
+2025-03-06 22:54:44.449 GMT [5415] STATEMENT:  INSERT INTO banktwo_account  VALUES (1, 'merchant123');
+2025-03-06 22:54:44.450 GMT [5415] ERROR:  type "bank" already exists
+2025-03-06 22:54:44.450 GMT [5415] STATEMENT:  CREATE TYPE bank AS ENUM ('bankone', 'banktwo');
+2025-03-06 22:55:00.290 GMT [5627] ERROR:  table "account" does not exist
+2025-03-06 22:55:00.290 GMT [5627] STATEMENT:  DROP TABLE account;
+2025-03-06 22:55:00.298 GMT [5627] ERROR:  role "gwuser" cannot be dropped because some objects depend on it
+2025-03-06 22:55:00.298 GMT [5627] DETAIL:  privileges for table bankone_account
+	privileges for table banktwo_account
+2025-03-06 22:55:00.298 GMT [5627] STATEMENT:  DROP USER gwuser;
+2025-03-06 22:55:00.298 GMT [5627] ERROR:  role "gwuser" already exists
+2025-03-06 22:55:00.298 GMT [5627] STATEMENT:  CREATE USER gwuser WITH PASSWORD 'gwpass';
+2025-03-06 22:55:00.298 GMT [5627] ERROR:  relation "bankone_account" already exists
+2025-03-06 22:55:00.298 GMT [5627] STATEMENT:  CREATE TABLE bankone_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255)
+	);
+2025-03-06 22:55:00.298 GMT [5627] ERROR:  relation "banktwo_account" already exists
+2025-03-06 22:55:00.298 GMT [5627] STATEMENT:  CREATE TABLE banktwo_account (
+	    id  integer PRIMARY KEY,
+	    merchant_id varchar(255)
+	);
+2025-03-06 22:55:00.299 GMT [5627] ERROR:  duplicate key value violates unique constraint "bankone_account_pkey"
+2025-03-06 22:55:00.299 GMT [5627] DETAIL:  Key (id)=(0) already exists.
+2025-03-06 22:55:00.299 GMT [5627] STATEMENT:  INSERT INTO bankone_account  VALUES (0, 'merchant123');
+2025-03-06 22:55:00.299 GMT [5627] ERROR:  duplicate key value violates unique constraint "banktwo_account_pkey"
+2025-03-06 22:55:00.299 GMT [5627] DETAIL:  Key (id)=(1) already exists.
+2025-03-06 22:55:00.299 GMT [5627] STATEMENT:  INSERT INTO banktwo_account  VALUES (1, 'merchant123');
+2025-03-06 22:56:34.590 GMT [7463] ERROR:  role "gwuser" does not exist
+2025-03-06 22:56:34.590 GMT [7463] STATEMENT:  DROP USER gwuser;
+2025-03-06 22:57:35.365 GMT [7861] ERROR:  role "gwuser" does not exist
+2025-03-06 22:57:35.365 GMT [7861] STATEMENT:  DROP USER gwuser;
+2025-03-06 22:58:24.208 GMT [8122] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:24.208 GMT [8122] STATEMENT:  GRANT ALL ON merchant TO gwuser;
+2025-03-06 22:58:24.211 GMT [8122] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:24.211 GMT [8122] STATEMENT:  GRANT ALL ON bankone_account TO gwuser;
+2025-03-06 22:58:24.212 GMT [8122] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:24.212 GMT [8122] STATEMENT:  GRANT ALL ON banktwo_account TO gwuser;
+2025-03-06 22:58:24.216 GMT [8122] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:24.216 GMT [8122] STATEMENT:  GRANT ALL ON paymentroute TO gwuser;
+2025-03-06 22:58:28.926 GMT [8138] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:28.926 GMT [8138] STATEMENT:  DROP USER gwuser;
+2025-03-06 22:58:28.930 GMT [8138] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:28.930 GMT [8138] STATEMENT:  GRANT ALL ON merchant TO gwuser;
+2025-03-06 22:58:28.933 GMT [8138] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:28.933 GMT [8138] STATEMENT:  GRANT ALL ON bankone_account TO gwuser;
+2025-03-06 22:58:28.933 GMT [8138] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:28.933 GMT [8138] STATEMENT:  GRANT ALL ON banktwo_account TO gwuser;
+2025-03-06 22:58:28.937 GMT [8138] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:28.937 GMT [8138] STATEMENT:  GRANT ALL ON paymentroute TO gwuser;
+2025-03-06 22:58:51.247 GMT [8348] ERROR:  role "gwuser" does not exist
+2025-03-06 22:58:51.247 GMT [8348] STATEMENT:  DROP USER gwuser;
+2025-03-06 22:59:28.537 GMT [11691] LOG:  checkpoint starting: time
+2025-03-06 22:59:43.633 GMT [11691] LOG:  checkpoint complete: wrote 150 buffers (0.9%); 0 WAL file(s) added, 0 removed, 0 recycled; write=15.052 s, sync=0.026 s, total=15.097 s; sync files=137, longest=0.004 s, average=0.001 s; distance=1217 kB, estimate=3173 kB; lsn=0/1B6E5B8, redo lsn=0/1B6E528
+2025-03-06 23:04:28.713 GMT [11691] LOG:  checkpoint starting: time
+2025-03-06 23:04:31.906 GMT [11691] LOG:  checkpoint complete: wrote 31 buffers (0.2%); 0 WAL file(s) added, 0 removed, 0 recycled; write=3.152 s, sync=0.008 s, total=3.193 s; sync files=5, longest=0.004 s, average=0.002 s; distance=130 kB, estimate=2869 kB; lsn=0/1B8F168, redo lsn=0/1B8F110

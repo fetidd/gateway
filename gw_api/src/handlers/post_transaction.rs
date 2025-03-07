@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 // use eval_macro::eval;
 use gw_core::{
-    account::BankOneAccount, billing::Billing, merchant::Merchant, payment::Payment,
+    account::BankOneAccount, billing::Billing, payment::Payment,
     transaction::transaction_builder::TransactionBuilder,
 };
 use tracing::instrument;
@@ -36,13 +36,17 @@ pub async fn handle_post_transaction(
     };
     // let customer_data = extract_customer_data(&mut payload);
     let merchant_id = payload.merchant_id;
-    // get merchant record from database
     let app_access = app.lock().await;
-    let merchant_data = match app_access.merchant_db.select_merchant(&merchant_id).await.map_err(|e| GatewayError::from(e)) {
+    let merchant_data = match app_access
+        .merchant_db
+        .select_merchant(&merchant_id)
+        .await
+        .map_err(|e| GatewayError::from(e))
+    {
         Ok(merchant) => merchant,
         Err(e) => {
             return e.into_response();
-        },
+        }
     };
     // get account record from database
     // let account_data = app.account_db.select(&payment_data);
@@ -80,7 +84,7 @@ fn extract_billing_data(payload: &mut TransactionRequest) -> Result<Billing, Gat
 fn extract_trx_data<T, R>(
     payload: &mut TransactionRequest,
     extract_fn: fn(&mut TransactionRequest) -> Option<R>,
-    field: &str
+    field: &str,
 ) -> Result<T, GatewayError>
 where
     R: TryInto<T>,

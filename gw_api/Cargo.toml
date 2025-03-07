@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 axum = { version = "0.8.1", features = ["macros"] }
+dotenvy = "0.15.7"
 # eval-macro = "0.5.0"
 gw_core = { path = "../gw_core" }
 serde = { version = "1.0.218", features = ["derive"] }

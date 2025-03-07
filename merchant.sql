@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS merchant (
+CREATE TABLE merchant (
     id  varchar(255) PRIMARY KEY,
     name  varchar(255) DEFAULT '',
     premise  varchar(255) DEFAULT '',

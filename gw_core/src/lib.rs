@@ -7,9 +7,9 @@ pub mod currency;
 pub mod customer;
 pub mod error;
 pub mod merchant;
-pub mod merchant_db;
 pub mod payment;
 pub mod payment_route;
+pub mod repo;
 #[cfg(test)]
 pub mod test_utils;
 pub mod transaction;

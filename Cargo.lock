@@ -574,6 +574,7 @@ name = "gw_api"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "dotenvy",
  "gw_core",
  "rstest",
  "serde",
