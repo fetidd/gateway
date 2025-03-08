@@ -1,4 +1,5 @@
--- Add migration script here
+CREATE SCHEMA account;
+
 CREATE USER gwuser WITH PASSWORD 'gwpass';
 CREATE TABLE account.merchant (
     id  varchar(255) PRIMARY KEY,
@@ -29,9 +30,9 @@ INSERT INTO account.banktwo  VALUES (1, 'merchant123');
 
 GRANT ALL ON account.bankone TO gwuser;
 GRANT ALL ON account.banktwo TO gwuser;
-CREATE TYPE account.scheme AS ENUM ('VISA', 'NASTERCARD');
-CREATE TYPE account.currency AS ENUM ('GBP', 'USD');
-CREATE TYPE account.bank AS ENUM ('bankone', 'banktwo');
+CREATE TYPE scheme AS ENUM ('VISA', 'MASTERCARD');
+CREATE TYPE currency AS ENUM ('GBP', 'USD');
+CREATE TYPE bank AS ENUM ('bankone', 'banktwo');
 
 CREATE TABLE account.paymentroute (
     scheme scheme,

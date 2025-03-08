@@ -31,7 +31,7 @@ impl Repo for MerchantRepo {
     type Id = String;
 
     fn table_name(&self) -> &str {
-        "merchant"
+        "account.merchant"
     }
 
     fn pool(&self) -> &PgPool {

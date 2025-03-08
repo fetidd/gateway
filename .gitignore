@@ -1,4 +1,6 @@
 target/
 apitest/
 gateway_db
+postgres
+logfile
 logfile
