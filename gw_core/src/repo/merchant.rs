@@ -1,31 +1,16 @@
 use std::str::FromStr;
 
 use crate::{country::Country, error::DatabaseError, merchant::Merchant};
-use sqlx::{postgres::PgPoolOptions, PgPool};
+use sqlx::PgPool;
 
-use super::Repo;
+use super::{Pool, Repo};
 
 #[derive(Debug, Clone)]
 pub struct MerchantRepo {
-    pool: PgPool,
+    pub pool: Box<Pool>,
 }
 
-impl MerchantRepo {
-    pub async fn connect(path: &str) -> Result<MerchantRepo, DatabaseError> {
-        let pool = PgPoolOptions::new()
-            .max_connections(5)
-            .connect(path)
-            .await
-            .map_err(|e| DatabaseError::from(e))?;
-        Ok(MerchantRepo { pool })
-    }
-
-    pub async fn select_merchant(&self, id: &str) -> Result<Merchant, DatabaseError> {
-        self.select_one(&id.into()).await
-    }
-}
-
-impl Repo for MerchantRepo {
+impl<'pool> Repo for MerchantRepo {
     type Domain = Merchant;
     type Record = MerchantRecord;
     type Id = String;

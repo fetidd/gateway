@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 // use eval_macro::eval;
 use gw_core::{
-    account::BankOneAccount, billing::Billing, payment::Payment,
+    account::BankOneAccount, billing::Billing, payment::Payment, repo::Repo,
     transaction::transaction_builder::TransactionBuilder,
 };
 use tracing::instrument;
@@ -38,8 +38,8 @@ pub async fn handle_post_transaction(
     let merchant_id = payload.merchant_id;
     let app_access = app.lock().await;
     let merchant_data = match app_access
-        .merchant_repo
-        .select_merchant(&merchant_id)
+        .merchants
+        .select_one(&merchant_id)
         .await
         .map_err(|e| GatewayError::from(e))
     {
@@ -133,7 +133,6 @@ where
 //         }
 //     }
 // }
-
 
 #[cfg(test)]
 mod tests {

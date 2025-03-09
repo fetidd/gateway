@@ -1,5 +1,5 @@
 use axum::{routing::post, Router};
-use gw_core::repo::merchant::MerchantRepo;
+use gw_core::repo::{merchant::MerchantRepo, Pool};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -13,22 +13,19 @@ pub fn create_router(app_state: AppState) -> Router {
 
 #[derive(Debug, Clone)]
 pub struct AppStateInner {
-    pub merchant_repo: MerchantRepo,
+    pub merchants: MerchantRepo,
 }
 
 impl AppStateInner {
-    pub async fn new(db_path: &str) -> AppStateInner {
+    pub async fn new(pool: Box<Pool>) -> AppStateInner {
         AppStateInner {
-            merchant_repo: MerchantRepo::connect(db_path)
-                .await
-                .expect("failed to create app state"),
+            merchants: MerchantRepo { pool },
         }
     }
 }
 
 pub type AppState = Arc<Mutex<AppStateInner>>;
 
-pub async fn create_appstate() -> AppState {
-    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL env variable not set");
-    Arc::new(Mutex::new(AppStateInner::new(&db_url).await))
+pub async fn create_appstate(pool: Pool) -> AppState {
+    Arc::new(Mutex::new(AppStateInner::new(Box::new(pool)).await))
 }

@@ -1,15 +1,41 @@
+pub mod merchant;
+
+use std::ops::Deref;
+
 use sqlx::{
-    postgres::{PgArguments, PgRow},
+    postgres::{PgArguments, PgPoolOptions, PgRow},
     prelude::Type,
-    query::{self, Query},
-    query_as, Arguments, Encode, FromRow, PgPool, Postgres,
+    query::Query,
+    query_as, Encode, FromRow, PgPool, Postgres,
 };
 
 use crate::error::DatabaseError;
 
-pub mod merchant;
+#[derive(Debug, Clone)]
+pub struct Pool {
+    _pool: PgPool,
+}
 
-trait Repo {
+impl Pool {
+    pub async fn new(path: &str) -> Result<Pool, DatabaseError> {
+        let _pool = PgPoolOptions::new()
+            .max_connections(5)
+            .connect(path)
+            .await
+            .map_err(|e| DatabaseError::from(e))?;
+        Ok(Pool { _pool })
+    }
+}
+
+impl Deref for Pool {
+    type Target = PgPool;
+
+    fn deref(&self) -> &Self::Target {
+        &self._pool
+    }
+}
+
+pub trait Repo {
     type Domain;
     type Record;
     type Id;
@@ -41,7 +67,7 @@ trait Repo {
     {
         let record: Self::Record = obj.into();
         let stmt = format!(
-            "INSERT INTO {} VALUES (DEFAULT, {})",
+            "INSERT INTO {} VALUES ({})",
             self.table_name(),
             generate_param_str(record.num_args())
         );
@@ -74,7 +100,7 @@ fn generate_param_str(n: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sqlx::test;
+    use sqlx::{test, Row};
 
     struct TestRepo {
         pub pool: PgPool,
@@ -86,38 +112,50 @@ mod tests {
         }
     }
 
+    #[derive(PartialEq, Debug)]
     struct TestDomain {
-        id: u32,
+        id: i32,
         name: String,
     }
+
+    #[derive(FromRow)]
     struct TestRecord {
-        id: u32,
+        id: i32,
         name: String,
     }
 
     impl From<&TestDomain> for TestRecord {
         fn from(value: &TestDomain) -> Self {
             TestRecord {
-                id: value.id,
+                id: value.id as i32,
                 name: value.name.to_owned(),
             }
         }
     }
 
+    impl TryFrom<TestRecord> for TestDomain {
+        type Error = DatabaseError;
+
+        fn try_from(value: TestRecord) -> Result<Self, Self::Error> {
+            let TestRecord { id, name } = value;
+            Ok(TestDomain { id, name })
+        }
+    }
+
     impl DbRecord for TestRecord {
         fn num_args(&self) -> usize {
-            1
+            2
         }
 
         fn bind_to(self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments> {
-            stmt.bind(self.name)
+            stmt.bind(self.id).bind(self.name)
         }
     }
 
     impl Repo for TestRepo {
         type Domain = TestDomain;
         type Record = TestRecord;
-        type Id = u32;
+        type Id = i32;
 
         fn table_name(&self) -> &str {
             "test"
@@ -133,13 +171,38 @@ mod tests {
         sqlx::query!("create table test (id integer, name text);")
             .execute(&pool)
             .await?;
-        let repo = TestRepo::new(pool);
+        let repo = TestRepo::new(pool.clone());
         let domain = TestDomain {
             id: 0,
             name: "test".into(),
         }; // we dont want an id here..
         let res = repo.insert_one(&domain).await?;
         dbg!(res);
+        let res = sqlx::query("select * from test where id = 0")
+            .fetch_one(&pool)
+            .await?;
+        assert_eq!(res.get::<i32, &str>("id"), 0);
+        assert_eq!(res.get::<String, &str>("name"), "test".to_string());
+        Ok(())
+    }
+
+    #[test]
+    fn test_select_one(pool: PgPool) -> Result<(), DatabaseError> {
+        sqlx::query("create table test (id integer, name text)")
+            .execute(&pool)
+            .await?;
+        sqlx::query("insert into test values (1, 'test')")
+            .execute(&pool)
+            .await?;
+        let repo = TestRepo::new(pool);
+        let res = repo.select_one(&1).await?;
+        assert_eq!(
+            res,
+            TestDomain {
+                id: 1,
+                name: "test".into()
+            }
+        );
         Ok(())
     }
 }
