@@ -49,7 +49,7 @@ pub async fn handle_post_transaction(
         }
     };
     // get account record from database
-    // let account_data = app.account_db.select(&payment_data);
+    // let account_data = app.accounts.select_for(&payment_data);
     let account_data = Box::new(BankOneAccount {});
     let mut transaction = {
         let tb = TransactionBuilder::new()

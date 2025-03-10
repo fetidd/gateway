@@ -8,7 +8,7 @@ impl From<sqlx::Error> for DatabaseError {
     fn from(value: sqlx::Error) -> Self {
         match value {
             sqlx::Error::Configuration(error) => DatabaseError::ConnectionError(error.to_string()), // TODO format with prefixes base don error type
-            sqlx::Error::Database(error) => DatabaseError::ConnectionError(error.to_string()),
+            sqlx::Error::Database(error) => DatabaseError::QueryError(error.to_string()),
             sqlx::Error::Io(error) => DatabaseError::ConnectionError(error.to_string()),
             sqlx::Error::Tls(error) => DatabaseError::ConnectionError(error.to_string()),
             sqlx::Error::Protocol(error) => DatabaseError::ConnectionError(error.to_string()),

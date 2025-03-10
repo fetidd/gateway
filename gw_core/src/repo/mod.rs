@@ -6,7 +6,7 @@ use sqlx::{
     postgres::{PgArguments, PgPoolOptions, PgRow},
     prelude::Type,
     query::Query,
-    query_as, Encode, FromRow, PgPool, Postgres,
+    query_as, Decode, Encode, FromRow, PgPool, Postgres, Row,
 };
 
 use crate::error::DatabaseError;
@@ -40,6 +40,7 @@ pub trait Repo {
     type Record;
     type Id;
 
+    #[allow(async_fn_in_trait)] // only using in own code
     async fn select_one(&self, id: &Self::Id) -> Result<Self::Domain, DatabaseError>
     where
         for<'r> <Self as Repo>::Record: FromRow<'r, PgRow> + Send + Unpin,
@@ -61,46 +62,103 @@ pub trait Repo {
         }
     }
 
-    async fn insert_one<'r>(&self, obj: &'r Self::Domain) -> Result<(), DatabaseError>
+    #[allow(async_fn_in_trait)] // only using in own code
+    async fn insert_one<'r>(&self, obj: &'r Self::Domain) -> Result<Self::Id, DatabaseError>
     where
-        <Self as Repo>::Record: From<&'r <Self as Repo>::Domain> + DbRecord,
+        <Self as Repo>::Record: From<&'r <Self as Repo>::Domain> + RepoEntity,
+        for<'a> <Self as Repo>::Id: Decode<'a, Postgres> + Type<Postgres>,
     {
         let record: Self::Record = obj.into();
         let stmt = format!(
-            "INSERT INTO {} VALUES ({})",
+            "INSERT INTO {} VALUES ({}) RETURNING id",
             self.table_name(),
-            generate_param_str(record.num_args())
+            record.values_str(),
         );
         let query = sqlx::query(&stmt);
         let query = record.bind_to(query);
-        query
-            .execute(self.pool())
+        let res = query
+            .fetch_one(self.pool())
             .await
             .map_err(|e| DatabaseError::from(e))?;
-        Ok(())
+        let id: Self::Id = res.get::<Self::Id, &str>("id");
+        Ok(id)
     }
 
     fn table_name(&self) -> &str;
     fn pool(&self) -> &PgPool;
 }
 
-trait DbRecord {
-    fn num_args(&self) -> usize;
+pub trait RepoEntity {
+    fn values_str(&self) -> String;
     fn bind_to(self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments>;
-}
-
-fn generate_param_str(n: usize) -> String {
-    (1..=n)
-        .into_iter()
-        .map(|n| format!("${n}"))
-        .collect::<Vec<_>>()
-        .join(", ")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use sqlx::{test, Row};
+
+    #[test]
+    async fn test_insert_one(pool: PgPool) -> Result<(), DatabaseError> {
+        sqlx::query!("create table test (id text, name text, primary key(id));")
+            .execute(&pool)
+            .await?;
+        let repo = TestRepoNoAuto::new(pool.clone());
+        let domain = TestDomainNoAuto {
+            number: 123,
+            name: "test".into(),
+        };
+        let res = repo.insert_one(&domain).await?;
+        assert_eq!(res, "123");
+        let res = sqlx::query("select * from test where id = $1")
+            .bind("123")
+            .fetch_one(&pool)
+            .await?;
+        assert_eq!(res.get::<String, &str>("id"), "123".to_string());
+        assert_eq!(res.get::<String, &str>("name"), "test".to_string());
+        Ok(())
+    }
+
+    #[test]
+    async fn test_insert_one_auto_id(pool: PgPool) -> Result<(), DatabaseError> {
+        sqlx::query!("create table test (id serial PRIMARY KEY, name text);")
+            .execute(&pool)
+            .await?;
+        let repo = TestRepo::new(pool.clone());
+        let domain = TestDomain {
+            id: 0,
+            name: "test".into(),
+        };
+        let res = repo.insert_one(&domain).await?;
+        let res = sqlx::query("select * from test where id = $1")
+            .bind(res)
+            .fetch_one(&pool)
+            .await?;
+        assert_eq!(res.get::<i32, &str>("id"), 1);
+        assert_eq!(res.get::<String, &str>("name"), "test".to_string());
+        Ok(())
+    }
+
+    #[test]
+    fn test_select_one(pool: PgPool) -> Result<(), DatabaseError> {
+        sqlx::query("create table test (id serial, name text)")
+            .execute(&pool)
+            .await?;
+        sqlx::query("insert into test (name) values ($1)")
+            .bind("test")
+            .execute(&pool)
+            .await?;
+        let repo = TestRepo::new(pool);
+        let res = repo.select_one(&1).await?;
+        assert_eq!(
+            res,
+            TestDomain {
+                id: 1,
+                name: "test".into()
+            }
+        );
+        Ok(())
+    }
 
     struct TestRepo {
         pub pool: PgPool,
@@ -112,9 +170,25 @@ mod tests {
         }
     }
 
+    struct TestRepoNoAuto {
+        pub pool: PgPool,
+    }
+
+    impl TestRepoNoAuto {
+        fn new(pool: PgPool) -> Self {
+            Self { pool }
+        }
+    }
+
     #[derive(PartialEq, Debug)]
     struct TestDomain {
         id: i32,
+        name: String,
+    }
+
+    #[derive(PartialEq, Debug)]
+    struct TestDomainNoAuto {
+        number: i32,
         name: String,
     }
 
@@ -124,10 +198,25 @@ mod tests {
         name: String,
     }
 
+    #[derive(FromRow)]
+    struct TestRecordNoAuto {
+        number: i32,
+        name: String,
+    }
+
     impl From<&TestDomain> for TestRecord {
         fn from(value: &TestDomain) -> Self {
             TestRecord {
                 id: value.id as i32,
+                name: value.name.to_owned(),
+            }
+        }
+    }
+
+    impl From<&TestDomainNoAuto> for TestRecordNoAuto {
+        fn from(value: &TestDomainNoAuto) -> Self {
+            TestRecordNoAuto {
+                number: value.number as i32,
                 name: value.name.to_owned(),
             }
         }
@@ -142,13 +231,32 @@ mod tests {
         }
     }
 
-    impl DbRecord for TestRecord {
-        fn num_args(&self) -> usize {
-            2
+    impl TryFrom<TestRecordNoAuto> for TestDomainNoAuto {
+        type Error = DatabaseError;
+
+        fn try_from(value: TestRecordNoAuto) -> Result<Self, Self::Error> {
+            let TestRecordNoAuto { number, name } = value;
+            Ok(TestDomainNoAuto { number, name })
+        }
+    }
+
+    impl RepoEntity for TestRecord {
+        fn bind_to(self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments> {
+            stmt.bind(self.name)
         }
 
+        fn values_str(&self) -> String {
+            "DEFAULT, $1".into()
+        }
+    }
+
+    impl RepoEntity for TestRecordNoAuto {
         fn bind_to(self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments> {
-            stmt.bind(self.id).bind(self.name)
+            stmt.bind(self.number).bind(self.name)
+        }
+
+        fn values_str(&self) -> String {
+            "$1, $2".into()
         }
     }
 
@@ -166,43 +274,17 @@ mod tests {
         }
     }
 
-    #[test]
-    async fn test_insert_one(pool: PgPool) -> Result<(), DatabaseError> {
-        sqlx::query!("create table test (id integer, name text);")
-            .execute(&pool)
-            .await?;
-        let repo = TestRepo::new(pool.clone());
-        let domain = TestDomain {
-            id: 0,
-            name: "test".into(),
-        }; // we dont want an id here..
-        let res = repo.insert_one(&domain).await?;
-        dbg!(res);
-        let res = sqlx::query("select * from test where id = 0")
-            .fetch_one(&pool)
-            .await?;
-        assert_eq!(res.get::<i32, &str>("id"), 0);
-        assert_eq!(res.get::<String, &str>("name"), "test".to_string());
-        Ok(())
-    }
+    impl Repo for TestRepoNoAuto {
+        type Domain = TestDomainNoAuto;
+        type Record = TestRecordNoAuto;
+        type Id = String;
 
-    #[test]
-    fn test_select_one(pool: PgPool) -> Result<(), DatabaseError> {
-        sqlx::query("create table test (id integer, name text)")
-            .execute(&pool)
-            .await?;
-        sqlx::query("insert into test values (1, 'test')")
-            .execute(&pool)
-            .await?;
-        let repo = TestRepo::new(pool);
-        let res = repo.select_one(&1).await?;
-        assert_eq!(
-            res,
-            TestDomain {
-                id: 1,
-                name: "test".into()
-            }
-        );
-        Ok(())
+        fn table_name(&self) -> &str {
+            "test"
+        }
+
+        fn pool(&self) -> &PgPool {
+            &self.pool
+        }
     }
 }

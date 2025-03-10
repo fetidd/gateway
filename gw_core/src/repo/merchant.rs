@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::{country::Country, error::DatabaseError, merchant::Merchant};
-use sqlx::PgPool;
+use sqlx::{Encode, PgPool, Postgres};
 
 use super::{Pool, Repo};
 
@@ -21,6 +21,15 @@ impl<'pool> Repo for MerchantRepo {
 
     fn pool(&self) -> &PgPool {
         &self.pool
+    }
+}
+
+impl<'q> Encode<'q, Postgres> for Merchant {
+    fn encode_by_ref(
+        &self,
+        buf: &mut <Postgres as sqlx::Database>::ArgumentBuffer<'q>,
+    ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+        todo!()
     }
 }
 
