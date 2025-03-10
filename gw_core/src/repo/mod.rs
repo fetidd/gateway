@@ -22,7 +22,7 @@ impl Pool {
             .max_connections(5)
             .connect(path)
             .await
-            .map_err(|e| DatabaseError::from(e))?;
+            .map_err(DatabaseError::from)?;
         Ok(Pool { _pool })
     }
 }
@@ -100,7 +100,7 @@ mod tests {
 
     #[test]
     async fn test_insert_one(pool: PgPool) -> Result<(), DatabaseError> {
-        sqlx::query!("create table test (id text, name text, primary key(id));")
+        sqlx::query("create table test (id text, name text, primary key(id));")
             .execute(&pool)
             .await?;
         let repo = TestRepoNoAuto::new(pool.clone());
@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     async fn test_insert_one_auto_id(pool: PgPool) -> Result<(), DatabaseError> {
-        sqlx::query!("create table test (id serial PRIMARY KEY, name text);")
+        sqlx::query("create table test (id serial PRIMARY KEY, name text);")
             .execute(&pool)
             .await?;
         let repo = TestRepo::new(pool.clone());

@@ -25,7 +25,7 @@ pub async fn handle_post_transaction(
             return e.into_response();
         }
     };
-    if let Err(e) = payment_data.validate().map_err(|e| GatewayError::from(e)) {
+    if let Err(e) = payment_data.validate().map_err(GatewayError::from) {
         return e.into_response();
     }
     let billing_data = match extract_billing_data(&mut payload) {
@@ -41,7 +41,7 @@ pub async fn handle_post_transaction(
         .merchants
         .select_one(&merchant_id)
         .await
-        .map_err(|e| GatewayError::from(e))
+        .map_err(GatewayError::from)
     {
         Ok(merchant) => merchant,
         Err(e) => {
@@ -135,6 +135,4 @@ where
 // }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-}
+mod tests {}
