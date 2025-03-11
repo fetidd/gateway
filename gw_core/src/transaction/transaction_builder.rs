@@ -114,7 +114,10 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
         }
     }
 
-    pub fn account(self, account: Box<dyn Account>) -> TransactionBuilder<T, A, P, HasAccount, M, B> {
+    pub fn account(
+        self,
+        account: Box<dyn Account>,
+    ) -> TransactionBuilder<T, A, P, HasAccount, M, B> {
         TransactionBuilder {
             amount: self.amount,
             transaction_type: self.transaction_type,
@@ -156,14 +159,16 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
 
 #[cfg(test)]
 mod tests {
-    use crate::{account::BankOneAccount, card_scheme::CardScheme};
+    use crate::{account::BankOneAccount, card_scheme::CardScheme, currency::Currency};
 
     use super::*;
     use rstest::*;
 
     #[rstest]
     fn build_test_1() {
-        let acct = Box::new(BankOneAccount);
+        let acct = Box::new(BankOneAccount {
+            merchant_identification_value: "12345678".into(),
+        });
         let mer = Merchant::default();
         let card = Payment::Card {
             scheme: CardScheme::Visa,
@@ -174,12 +179,12 @@ mod tests {
         let billing = Billing::default();
         let trx = {
             let trx = TransactionBuilder::new()
-            .transaction_type(TransactionType::Auth)
-            .amount(12345)
-            .payment(card)
-            .account(acct)
-            .billing(billing)
-            .merchant(mer);
+                .transaction_type(TransactionType::Auth)
+                .amount(12345)
+                .payment(card)
+                .account(acct)
+                .billing(billing)
+                .merchant(mer);
             trx.build()
         };
         assert_eq!(
@@ -187,7 +192,7 @@ mod tests {
             Transaction {
                 amount: Amount::Base {
                     val: 12345,
-                    cur: crate::currency::Currency::GBP,
+                    cur: Currency::GBP,
                 },
                 payment: Payment::Card {
                     scheme: CardScheme::Visa,
@@ -198,7 +203,9 @@ mod tests {
                 r#type: TransactionType::Auth,
                 billing: Billing::default(),
                 merchant: Merchant::default(),
-                account: Box::new(BankOneAccount),
+                account: Box::new(BankOneAccount {
+                    merchant_identification_value: "12345678".into()
+                }),
                 customer: None,
                 status: TransactionStatus::Success
             }

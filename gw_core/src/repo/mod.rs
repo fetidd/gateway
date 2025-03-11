@@ -207,7 +207,7 @@ mod tests {
     impl From<&TestDomain> for TestRecord {
         fn from(value: &TestDomain) -> Self {
             TestRecord {
-                id: value.id as i32,
+                id: value.id,
                 name: value.name.to_owned(),
             }
         }
@@ -216,7 +216,7 @@ mod tests {
     impl From<&TestDomainNoAuto> for TestRecordNoAuto {
         fn from(value: &TestDomainNoAuto) -> Self {
             TestRecordNoAuto {
-                number: value.number as i32,
+                number: value.number,
                 name: value.name.to_owned(),
             }
         }

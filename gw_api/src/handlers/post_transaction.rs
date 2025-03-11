@@ -50,7 +50,9 @@ pub async fn handle_post_transaction(
     };
     // get account record from database
     // let account_data = app.accounts.select_for(&payment_data);
-    let account_data = Box::new(BankOneAccount {});
+    let account_data = Box::new(BankOneAccount {
+        merchant_identification_value: "12345678".into(),
+    });
     let mut transaction = {
         let tb = TransactionBuilder::new()
             .transaction_type(payload.transaction_type)
