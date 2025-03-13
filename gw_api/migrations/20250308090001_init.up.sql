@@ -17,29 +17,29 @@ INSERT INTO account.merchant VALUES ('merchant123', 'Test Merchant', 'Premise', 
 GRANT ALL ON account.merchant TO gwuser;
 CREATE TABLE account.bankone (
     id  integer PRIMARY KEY,
-    merchant_id varchar(255)
+    bankone_identifier varchar(255)
 );
 
 CREATE TABLE account.banktwo (
     id  integer PRIMARY KEY,
-    merchant_id varchar(255)
+    banktwo_merchant_id varchar(255)
 );
 
-INSERT INTO account.bankone  VALUES (0, 'merchant123');
-INSERT INTO account.banktwo  VALUES (1, 'merchant123');
+INSERT INTO account.bankone VALUES (0, 'merchant123');
+INSERT INTO account.banktwo VALUES (1, 'merchant123');
 
 GRANT ALL ON account.bankone TO gwuser;
 GRANT ALL ON account.banktwo TO gwuser;
 CREATE TYPE scheme AS ENUM ('VISA', 'MASTERCARD');
 CREATE TYPE currency AS ENUM ('GBP', 'USD');
-CREATE TYPE bank AS ENUM ('bankone', 'banktwo');
+CREATE TYPE acquirer AS ENUM ('bankone', 'banktwo');
 
 CREATE TABLE account.paymentroute (
     scheme scheme,
     currency currency,
     merchant_id varchar(255) REFERENCES account.merchant,
     account_id integer,
-    bank bank,
+    acquirer acquirer,
     PRIMARY KEY (scheme, currency, merchant_id)
 );
 
