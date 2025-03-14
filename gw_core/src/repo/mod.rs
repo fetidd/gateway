@@ -37,7 +37,7 @@ impl Deref for Pool {
     }
 }
 
-pub(crate) trait Repo {
+pub trait Repo {
     type Entity: Entity;
     type Id;
 
@@ -84,8 +84,7 @@ pub(crate) trait Repo {
     fn pool(&self) -> &PgPool;
 }
 
-pub(crate) trait Entity: for <'r> FromRow<'r, PgRow> + Send + Unpin {
-    
+pub trait Entity: for<'r> FromRow<'r, PgRow> + Send + Unpin {
     /// The string to be passed into the SQL INSERT query after VALUES
     fn values_str(&self) -> String;
 
@@ -200,7 +199,7 @@ mod tests {
         fn from_row(row: &'a PgRow) -> Result<Self, Error> {
             let id: i32 = row.try_get("id")?;
             let name: String = row.try_get("name")?;
-            let res = TestDomain { id , name };
+            let res = TestDomain { id, name };
             Ok(res)
         }
     }
@@ -228,7 +227,10 @@ mod tests {
     }
 
     impl Entity for TestDomainNoAuto {
-        fn bind_to<'a>(&'a self, stmt: Query<'a, Postgres, PgArguments>) -> Query<'a, Postgres, PgArguments> {
+        fn bind_to<'a>(
+            &'a self,
+            stmt: Query<'a, Postgres, PgArguments>,
+        ) -> Query<'a, Postgres, PgArguments> {
             stmt.bind(self.number).bind(self.name.clone())
         }
 

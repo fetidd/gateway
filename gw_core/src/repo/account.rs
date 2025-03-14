@@ -1,79 +1,94 @@
-use crate::account::Account;
+use std::sync::Arc;
+
+use crate::{
+    account::{AcquirerAccount, BankOneAccount, BankTwoAccount},
+    currency::Currency,
+    payment::Payment,
+};
 
 use super::*;
 
+#[derive(Debug)]
 pub struct AccountRepo {
-    pool: Box<Pool>
+    pub pool: Arc<Pool>,
 }
 
-pub struct AccountRecord {}
-
-impl Repo for AccountRepo {
-    type Entity = Box<dyn Account + Send + Sync>;
-    type Id = i32;
-
-    fn pool(&self) -> &PgPool {
-        &self.pool
-    }
-
-    fn table_name(&self) -> &'static str {
-        todo!()
-    }
-
-    async fn select_one(&self, id: &Self::Id) -> Result<Self::Entity, DatabaseError>
-    where
-        for<'i> <Self as Repo>::Id: std::fmt::Display + Encode<'i, Postgres> + Type<Postgres>,
-    {
-        let res = query_as::<_, Self::Entity>(&std::format!(
-            "SELECT * FROM {} WHERE id = $1",
-            self.table_name()
-        ))
-        .bind(id)
-        .fetch_one(self.pool())
-        .await
-        .map_err(|e| DatabaseError::from(e))?;
-        match res.try_into() {
-            Ok(r) => Ok(r),
-            Err(e) => Err(DatabaseError::QueryError(e.to_string())),
-        }
-    }
-
-    async fn insert_one<'e>(&self, entity: &'e Self::Entity) -> Result<Self::Id, DatabaseError>
-    where
-        for<'a> <Self as Repo>::Id: Decode<'a, Postgres> + Type<Postgres>,
-    {
-        let stmt = std::format!(
-            "INSERT INTO {} VALUES ({}) RETURNING id",
-            self.table_name(),
-            entity.values_str(),
+impl AccountRepo {
+    pub async fn select_for(
+        &self,
+        merchant_id: &str,
+        payment_data: &Payment,
+        currency: Currency,
+    ) -> Result<AcquirerAccount, DatabaseError> {
+        let scheme = match *payment_data {
+            Payment::Card { scheme, .. } => scheme,
+            Payment::Account { .. } => todo!(),
+        };
+        let row = sqlx::query("SELECT DISTINCT acquirer, account_id FROM account.paymentroute WHERE scheme = $1 currency = $2, merchant_id = $3 LIMIT 1;")
+            .bind(scheme.to_string())
+            .bind(currency.to_string())
+            .bind(merchant_id)
+            .fetch_one(&**self.pool)
+            .await?;
+        let (acquirer, account_id): (&str, i32) = (
+            row.get_unchecked("acquirer"),
+            row.get_unchecked("account_id"),
         );
-        let query = sqlx::query(&stmt);
-        let query = entity.bind_to(query);
-        let res = query
-            .fetch_one(self.pool())
-            .await
-            .map_err(|e| DatabaseError::from(e))?;
-        let id: Self::Id = res.get::<Self::Id, &str>("id");
-        Ok(id)
+        let sql = format!("SELECT * FROM account.{acquirer} WHERE id = $1");
+        let row = sqlx::query(&sql)
+            .bind(account_id)
+            .fetch_one(&**self.pool)
+            .await?;
+        make_account(acquirer, &row)
     }
 }
 
+fn make_account(acquirer: &str, row: &PgRow) -> Result<AcquirerAccount, DatabaseError> {
+    match acquirer {
+        "bankone" => Ok(AcquirerAccount::BankOne(BankOneAccount::from_row(&row)?)),
+        "banktwo" => Ok(AcquirerAccount::BankTwo(BankTwoAccount::from_row(&row)?)),
+        invalid => Err(DatabaseError::QueryError(format!(
+            "{invalid} is not a supported acquirer"
+        ))),
+    }
+}
 
-impl<'r> FromRow<'r, PgRow> for Box<dyn Account + Send + Sync> {
+impl<'r> FromRow<'r, PgRow> for BankOneAccount {
     fn from_row(row: &'r PgRow) -> Result<Self, sqlx::Error> {
-        todo!()
+        Ok(BankOneAccount {
+            merchant_identification_value: row.try_get("merchant_identification_value")?,
+        })
     }
 }
 
-impl Entity for Box<dyn Account + Send + Sync> {
-    fn values_str(&self) -> String {
-        todo!()
-    }
-
-    fn bind_to<'a>(
-        &'a self,
-        stmt: Query<'a, Postgres, PgArguments>,
-    ) -> Query<'a, Postgres, PgArguments> {
-        todo!()
+impl<'r> FromRow<'r, PgRow> for BankTwoAccount {
+    fn from_row(row: &'r PgRow) -> Result<Self, sqlx::Error> {
+        Ok(BankTwoAccount {
+            merchant_reference: row.try_get("merchant_reference")?,
+        })
     }
 }
+
+// impl Entity for BankOneAccount {
+//     fn values_str(&self) -> String {
+//         "merchant_identification_value".into()
+//     }
+
+//     fn bind_to<'a>(
+//         &'a self,
+//         stmt: Query<'a, Postgres, PgArguments>,
+//     ) -> Query<'a, Postgres, PgArguments> {
+//         stmt.bind(self.merchant_identification_value.clone())
+//     }
+// }
+
+// #[cfg(test)]
+// mod tests {
+//     use rstest::rstest;
+//     use sqlx::postgres::PgRow;
+
+//     #[rstest]
+//     fn test_make_account() {
+//         let test_row = PgRow { data: todo!(), format: todo!(), metadata: todo!() }}
+//     }
+// }

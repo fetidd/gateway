@@ -9,7 +9,7 @@ pub struct TransactionBuilder<T, A, P, Acc, M, B> {
     payment: Option<Payment>,
     billing: Option<Billing>,
     merchant: Option<Merchant>,
-    account: Option<Box<dyn Account>>,
+    account: Option<AcquirerAccount>,
     customer: Option<Customer>,
     _t: PhantomData<T>,
     _a: PhantomData<A>,
@@ -116,7 +116,7 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
 
     pub fn account(
         self,
-        account: Box<dyn Account>,
+        account: AcquirerAccount,
     ) -> TransactionBuilder<T, A, P, HasAccount, M, B> {
         TransactionBuilder {
             amount: self.amount,
@@ -166,7 +166,7 @@ mod tests {
 
     #[rstest]
     fn build_test_1() {
-        let acct = Box::new(BankOneAccount {
+        let acct = AcquirerAccount::BankOne(BankOneAccount {
             merchant_identification_value: "12345678".into(),
         });
         let mer = Merchant::default();
@@ -203,7 +203,7 @@ mod tests {
                 r#type: TransactionType::Auth,
                 billing: Billing::default(),
                 merchant: Merchant::default(),
-                account: Box::new(BankOneAccount {
+                account: AcquirerAccount::BankOne(BankOneAccount {
                     merchant_identification_value: "12345678".into()
                 }),
                 customer: None,

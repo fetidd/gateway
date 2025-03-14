@@ -1,5 +1,5 @@
 use axum::{routing::post, Router};
-use gw_core::repo::{merchant::MerchantRepo, Pool};
+use gw_core::repo::{account::AccountRepo, merchant::MerchantRepo, Pool};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -11,15 +11,21 @@ pub fn create_router(app_state: AppState) -> Router {
         .with_state(app_state)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct AppStateInner {
     pub merchants: MerchantRepo,
+    pub accounts: AccountRepo,
 }
 
 impl AppStateInner {
-    pub async fn new(pool: Box<Pool>) -> AppStateInner {
+    pub async fn new(pool: Arc<Pool>) -> AppStateInner {
         AppStateInner {
-            merchants: MerchantRepo { pool },
+            merchants: MerchantRepo {
+                pool: Arc::clone(&pool),
+            },
+            accounts: AccountRepo {
+                pool: Arc::clone(&pool),
+            },
         }
     }
 }
@@ -27,5 +33,5 @@ impl AppStateInner {
 pub type AppState = Arc<Mutex<AppStateInner>>;
 
 pub async fn create_appstate(pool: Pool) -> AppState {
-    Arc::new(Mutex::new(AppStateInner::new(Box::new(pool)).await))
+    Arc::new(Mutex::new(AppStateInner::new(Arc::new(pool)).await))
 }

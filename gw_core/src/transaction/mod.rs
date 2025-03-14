@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use validify::{schema_validation, ValidationErrors, Validify};
 
 use crate::{
-    account::Account, amount::Amount, billing::Billing, customer::Customer, merchant::Merchant,
-    payment::Payment,
+    account::AcquirerAccount, amount::Amount, billing::Billing, customer::Customer,
+    merchant::Merchant, payment::Payment,
 };
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -42,7 +42,7 @@ pub struct Transaction {
     pub payment: Payment,
     pub billing: Billing,
     pub merchant: Merchant,
-    pub account: Box<dyn Account>,
+    pub account: AcquirerAccount,
     pub customer: Option<Customer>,
     pub status: TransactionStatus,
 }
@@ -56,7 +56,7 @@ impl PartialEq<Transaction> for Transaction {
             && self.merchant == other.merchant
             && self.customer == other.customer
             && self.status == other.status
-            && self.account.hash() == other.account.hash()
+            && self.account == other.account
     }
 }
 

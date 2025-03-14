@@ -1,17 +1,18 @@
+use std::{rc::Rc, sync::Arc};
+
 use crate::merchant::Merchant;
 use sqlx::{
     postgres::{PgArguments, PgRow},
     prelude::FromRow,
     query::Query,
-    PgPool, Postgres,
-    Row
+    PgPool, Postgres, Row,
 };
 
 use super::{Entity, Pool, Repo};
 
 #[derive(Debug, Clone)]
 pub struct MerchantRepo {
-    pub pool: Box<Pool>,
+    pub pool: Arc<Pool>,
 }
 
 impl<'r> FromRow<'r, PgRow> for Merchant {
@@ -19,7 +20,10 @@ impl<'r> FromRow<'r, PgRow> for Merchant {
         let country = row
             .try_get::<String, &str>("country")?
             .try_into()
-            .map_err(|e| sqlx::Error::ColumnDecode { index: "country".into(), source: Box::new(e) })?;
+            .map_err(|e| sqlx::Error::ColumnDecode {
+                index: "country".into(),
+                source: Box::new(e),
+            })?;
         Ok(Merchant {
             merchant_id: row.try_get("merchant_id")?,
             name: row.try_get("name")?,
@@ -28,7 +32,7 @@ impl<'r> FromRow<'r, PgRow> for Merchant {
             city: row.try_get("city")?,
             postcode: row.try_get("postcode")?,
             county: row.try_get("county")?,
-            country
+            country,
         })
     }
 }
@@ -42,8 +46,7 @@ impl Entity for Merchant {
         &'a self,
         stmt: Query<'a, Postgres, PgArguments>,
     ) -> Query<'a, Postgres, PgArguments> {
-        stmt
-            .bind(self.merchant_id.clone())
+        stmt.bind(self.merchant_id.clone())
             .bind(self.name.clone())
             .bind(self.premise.clone())
             .bind(self.street.clone())

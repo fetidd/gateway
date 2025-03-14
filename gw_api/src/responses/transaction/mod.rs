@@ -46,7 +46,7 @@ mod tests {
     use super::*;
 
     use gw_core::{
-        account::{Account, BankOneAccount},
+        account::{AcquirerAccount, BankOneAccount},
         billing::Billing,
         card_scheme::CardScheme,
         currency::Currency,
@@ -64,7 +64,7 @@ mod tests {
             security_code: "123".into(),
             pan: "4000111122223333".into(),
         };
-        let acct = Box::new(BankOneAccount {
+        let acct = AcquirerAccount::BankOne(BankOneAccount {
             merchant_identification_value: "12345678".into(),
         });
         let mer = Merchant::default();

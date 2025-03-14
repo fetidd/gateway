@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 // use eval_macro::eval;
 use gw_core::{
-    account::BankOneAccount, billing::Billing, payment::Payment, repo::Repo,
+    account::BankOneAccount, billing::Billing, currency::Currency, payment::Payment, repo::Repo,
     transaction::transaction_builder::TransactionBuilder,
 };
 use tracing::instrument;
@@ -48,11 +48,17 @@ pub async fn handle_post_transaction(
             return e.into_response();
         }
     };
-    // get account record from database
-    // let account_data = app.accounts.select_for(&payment_data);
-    let account_data = Box::new(BankOneAccount {
-        merchant_identification_value: "12345678".into(),
-    });
+    let account_data = match app_access
+        .accounts
+        .select_for(&merchant_id, &payment_data, Currency::GBP)
+        .await
+        .map_err(GatewayError::from)
+    {
+        Ok(a) => a,
+        Err(e) => {
+            return e.into_response();
+        }
+    };
     let mut transaction = {
         let tb = TransactionBuilder::new()
             .transaction_type(payload.transaction_type)
