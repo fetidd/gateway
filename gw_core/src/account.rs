@@ -2,6 +2,8 @@ pub trait Account: std::fmt::Debug {
     fn hash(&self) -> u64;
     fn bank_name(&self) -> String;
     fn mid(&self) -> String;
+
+    fn table_name(&self) -> &'static str;
 }
 
 #[derive(Debug, Clone)]
@@ -21,6 +23,10 @@ impl Account for BankOneAccount {
     fn mid(&self) -> String {
         self.merchant_identification_value.to_owned()
     }
+
+    fn table_name(&self) -> &'static str {
+        "account.bankone"
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -39,5 +45,9 @@ impl Account for BankTwoAccount {
 
     fn mid(&self) -> String {
         self.merchant_reference.to_owned()
+    }
+
+    fn table_name(&self) -> &'static str {
+        "account.banktwo"
     }
 }

@@ -1,4 +1,29 @@
 #[derive(Debug)]
+pub struct Error {
+    pub(crate) kind: ErrorKind,
+    pub(crate) message: String,
+    pub(crate) source: Option<Box<dyn std::error::Error + Send + Sync>>
+}
+
+impl std::error::Error for Error {}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.kind {
+            ErrorKind::DatabaseError(database_error) => write!(f, "{database_error}"),
+            ErrorKind::TypeError => write!(f, "TypeError"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum ErrorKind {
+    DatabaseError(DatabaseError),
+    TypeError,
+}
+
+
+#[derive(Debug)]
 pub enum DatabaseError {
     ConnectionError(String),
     QueryError(String),

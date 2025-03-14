@@ -1,6 +1,6 @@
 pub mod account;
 pub mod merchant;
-pub mod transaction;
+// pub mod transaction;
 
 use std::ops::Deref;
 
@@ -37,14 +37,13 @@ impl Deref for Pool {
     }
 }
 
-pub trait Repo {
+pub(crate) trait Repo {
     type Entity: Entity;
     type Id;
 
     #[allow(async_fn_in_trait)] // only using in own code
     async fn select_one(&self, id: &Self::Id) -> Result<Self::Entity, DatabaseError>
     where
-        for<'r> <Self as Repo>::Entity: FromRow<'r, PgRow> + Send + Unpin,
         for<'i> <Self as Repo>::Id: std::fmt::Display + Encode<'i, Postgres> + Type<Postgres>,
     {
         let res = query_as::<_, Self::Entity>(&format!(
@@ -62,7 +61,7 @@ pub trait Repo {
     }
 
     #[allow(async_fn_in_trait)] // only using in own code
-    async fn insert_one<'r>(&self, entity: &'r Self::Entity) -> Result<Self::Id, DatabaseError>
+    async fn insert_one<'e>(&self, entity: &'e Self::Entity) -> Result<Self::Id, DatabaseError>
     where
         for<'a> <Self as Repo>::Id: Decode<'a, Postgres> + Type<Postgres>,
     {
@@ -81,12 +80,17 @@ pub trait Repo {
         Ok(id)
     }
 
-    fn table_name(&self) -> &str;
+    fn table_name(&self) -> &'static str;
     fn pool(&self) -> &PgPool;
 }
 
-pub trait Entity {
+pub(crate) trait Entity: for <'r> FromRow<'r, PgRow> + Send + Unpin {
+    
+    /// The string to be passed into the SQL INSERT query after VALUES
     fn values_str(&self) -> String;
+
+    /// Takes in a Query so that the Entity can correctly bind its parameters to it
+    /// in the order specified in values_str
     fn bind_to<'a>(
         &'a self,
         stmt: Query<'a, Postgres, PgArguments>,
@@ -96,7 +100,7 @@ pub trait Entity {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sqlx::{test, Row};
+    use sqlx::{test, Error, Row};
 
     #[test]
     async fn test_insert_one(pool: PgPool) -> Result<(), DatabaseError> {
@@ -192,6 +196,15 @@ mod tests {
         name: String,
     }
 
+    impl<'a> FromRow<'a, PgRow> for TestDomain {
+        fn from_row(row: &'a PgRow) -> Result<Self, Error> {
+            let id: i32 = row.try_get("id")?;
+            let name: String = row.try_get("name")?;
+            let res = TestDomain { id , name };
+            Ok(res)
+        }
+    }
+
     impl Entity for TestDomain {
         fn bind_to<'a>(
             &'a self,
@@ -205,9 +218,18 @@ mod tests {
         }
     }
 
+    impl<'a> FromRow<'a, PgRow> for TestDomainNoAuto {
+        fn from_row(row: &'a PgRow) -> Result<Self, Error> {
+            let number: i32 = row.try_get("number")?;
+            let name: String = row.try_get("name")?;
+            let res = TestDomainNoAuto { name, number };
+            Ok(res)
+        }
+    }
+
     impl Entity for TestDomainNoAuto {
-        fn bind_to(&self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments> {
-            stmt.bind(self.number).bind(self.name)
+        fn bind_to<'a>(&'a self, stmt: Query<'a, Postgres, PgArguments>) -> Query<'a, Postgres, PgArguments> {
+            stmt.bind(self.number).bind(self.name.clone())
         }
 
         fn values_str(&self) -> String {
@@ -219,26 +241,25 @@ mod tests {
         type Entity = TestDomain;
         type Id = i32;
 
-        fn table_name(&self) -> &str {
-            "test"
-        }
-
         fn pool(&self) -> &PgPool {
             &self.pool
+        }
+
+        fn table_name(&self) -> &'static str {
+            todo!()
         }
     }
 
     impl Repo for TestRepoNoAuto {
-        type Domain = TestDomainNoAuto;
-        type Record = TestRecordNoAuto;
+        type Entity = TestDomainNoAuto;
         type Id = String;
-
-        fn table_name(&self) -> &str {
-            "test"
-        }
 
         fn pool(&self) -> &PgPool {
             &self.pool
+        }
+
+        fn table_name(&self) -> &'static str {
+            todo!()
         }
     }
 }

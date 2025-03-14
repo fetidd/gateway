@@ -47,7 +47,7 @@ mod tests {
             county: "county".into(),
             country: Country::GB,
         };
-        m.validify();
+        assert!(m.validify().is_ok());
         assert_eq!(m, exp);
     }
 }

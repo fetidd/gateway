@@ -1,6 +1,5 @@
-use std::str::FromStr;
-
 use serde::Serialize;
+use crate::error::{Error, ErrorKind};
 
 #[derive(Serialize, Clone, Copy, PartialEq, Debug, Default)]
 pub enum Country {
@@ -20,25 +19,13 @@ impl std::fmt::Display for Country {
 }
 
 impl TryFrom<String> for Country {
-    fn try_from(value: String) -> Result<Country, String> {
+    type Error = Error;
+
+    fn try_from(value: String) -> Result<Country, Self::Error> {
         match value.as_str() {
             "GB" => Ok(Self::GB),
             "US" => Ok(Self::US),
-            invalid => Err(format!("{invalid} is not a valid country code")),
-        }
-    }
-
-    type Error = String;
-}
-
-impl FromStr for Country {
-    type Err = String; // TODO make proper core error types
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "GB" => Ok(Self::GB),
-            "US" => Ok(Self::US),
-            invalid => Err(format!("{invalid} is not a recognised country code")),
+            invalid => Err(Error {kind: ErrorKind::TypeError, message: format!("{invalid} is not a recognised country code"), source: None }),
         }
     }
 }
