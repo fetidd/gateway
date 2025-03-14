@@ -1,4 +1,6 @@
+pub mod account;
 pub mod merchant;
+pub mod transaction;
 
 use std::ops::Deref;
 
@@ -36,19 +38,16 @@ impl Deref for Pool {
 }
 
 pub trait Repo {
-    type Domain;
-    type Record;
+    type Entity: Entity;
     type Id;
 
     #[allow(async_fn_in_trait)] // only using in own code
-    async fn select_one(&self, id: &Self::Id) -> Result<Self::Domain, DatabaseError>
+    async fn select_one(&self, id: &Self::Id) -> Result<Self::Entity, DatabaseError>
     where
-        for<'r> <Self as Repo>::Record: FromRow<'r, PgRow> + Send + Unpin,
+        for<'r> <Self as Repo>::Entity: FromRow<'r, PgRow> + Send + Unpin,
         for<'i> <Self as Repo>::Id: std::fmt::Display + Encode<'i, Postgres> + Type<Postgres>,
-        <Self as Repo>::Domain: TryFrom<<Self as Repo>::Record>,
-        <<Self as Repo>::Domain as TryFrom<<Self as Repo>::Record>>::Error: std::fmt::Display,
     {
-        let res = query_as::<_, Self::Record>(&format!(
+        let res = query_as::<_, Self::Entity>(&format!(
             "SELECT * FROM {} WHERE id = $1",
             self.table_name()
         ))
@@ -63,19 +62,17 @@ pub trait Repo {
     }
 
     #[allow(async_fn_in_trait)] // only using in own code
-    async fn insert_one<'r>(&self, obj: &'r Self::Domain) -> Result<Self::Id, DatabaseError>
+    async fn insert_one<'r>(&self, entity: &'r Self::Entity) -> Result<Self::Id, DatabaseError>
     where
-        <Self as Repo>::Record: From<&'r <Self as Repo>::Domain> + RepoEntity,
         for<'a> <Self as Repo>::Id: Decode<'a, Postgres> + Type<Postgres>,
     {
-        let record: Self::Record = obj.into();
         let stmt = format!(
             "INSERT INTO {} VALUES ({}) RETURNING id",
             self.table_name(),
-            record.values_str(),
+            entity.values_str(),
         );
         let query = sqlx::query(&stmt);
-        let query = record.bind_to(query);
+        let query = entity.bind_to(query);
         let res = query
             .fetch_one(self.pool())
             .await
@@ -88,9 +85,12 @@ pub trait Repo {
     fn pool(&self) -> &PgPool;
 }
 
-pub trait RepoEntity {
+pub trait Entity {
     fn values_str(&self) -> String;
-    fn bind_to(self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments>;
+    fn bind_to<'a>(
+        &'a self,
+        stmt: Query<'a, Postgres, PgArguments>,
+    ) -> Query<'a, Postgres, PgArguments>;
 }
 
 #[cfg(test)]
@@ -192,57 +192,12 @@ mod tests {
         name: String,
     }
 
-    #[derive(FromRow)]
-    struct TestRecord {
-        id: i32,
-        name: String,
-    }
-
-    #[derive(FromRow)]
-    struct TestRecordNoAuto {
-        number: i32,
-        name: String,
-    }
-
-    impl From<&TestDomain> for TestRecord {
-        fn from(value: &TestDomain) -> Self {
-            TestRecord {
-                id: value.id,
-                name: value.name.to_owned(),
-            }
-        }
-    }
-
-    impl From<&TestDomainNoAuto> for TestRecordNoAuto {
-        fn from(value: &TestDomainNoAuto) -> Self {
-            TestRecordNoAuto {
-                number: value.number,
-                name: value.name.to_owned(),
-            }
-        }
-    }
-
-    impl TryFrom<TestRecord> for TestDomain {
-        type Error = DatabaseError;
-
-        fn try_from(value: TestRecord) -> Result<Self, Self::Error> {
-            let TestRecord { id, name } = value;
-            Ok(TestDomain { id, name })
-        }
-    }
-
-    impl TryFrom<TestRecordNoAuto> for TestDomainNoAuto {
-        type Error = DatabaseError;
-
-        fn try_from(value: TestRecordNoAuto) -> Result<Self, Self::Error> {
-            let TestRecordNoAuto { number, name } = value;
-            Ok(TestDomainNoAuto { number, name })
-        }
-    }
-
-    impl RepoEntity for TestRecord {
-        fn bind_to(self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments> {
-            stmt.bind(self.name)
+    impl Entity for TestDomain {
+        fn bind_to<'a>(
+            &'a self,
+            stmt: Query<'a, Postgres, PgArguments>,
+        ) -> Query<'a, Postgres, PgArguments> {
+            stmt.bind(self.name.clone())
         }
 
         fn values_str(&self) -> String {
@@ -250,8 +205,8 @@ mod tests {
         }
     }
 
-    impl RepoEntity for TestRecordNoAuto {
-        fn bind_to(self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments> {
+    impl Entity for TestDomainNoAuto {
+        fn bind_to(&self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments> {
             stmt.bind(self.number).bind(self.name)
         }
 
@@ -261,8 +216,7 @@ mod tests {
     }
 
     impl Repo for TestRepo {
-        type Domain = TestDomain;
-        type Record = TestRecord;
+        type Entity = TestDomain;
         type Id = i32;
 
         fn table_name(&self) -> &str {
