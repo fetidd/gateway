@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 // use eval_macro::eval;
 use gw_core::{
-    account::BankOneAccount, billing::Billing, currency::Currency, payment::Payment, repo::Repo,
+    billing::Billing, currency::Currency, payment::Payment, repo::Repo,
     transaction::transaction_builder::TransactionBuilder,
 };
 use tracing::instrument;

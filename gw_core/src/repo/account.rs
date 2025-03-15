@@ -82,13 +82,10 @@ impl<'r> FromRow<'r, PgRow> for BankTwoAccount {
 //     }
 // }
 
-// #[cfg(test)]
-// mod tests {
-//     use rstest::rstest;
-//     use sqlx::postgres::PgRow;
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
 
-//     #[rstest]
-//     fn test_make_account() {
-//         let test_row = PgRow { data: todo!(), format: todo!(), metadata: todo!() }}
-//     }
-// }
+    #[rstest]
+    fn test_make_account() {}
+}
