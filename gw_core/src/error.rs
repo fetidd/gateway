@@ -2,7 +2,7 @@
 pub struct Error {
     pub(crate) kind: ErrorKind,
     pub(crate) message: String,
-    pub(crate) source: Option<Box<dyn std::error::Error + Send + Sync>>
+    // pub(crate) source: Option<Box<dyn std::error::Error + Send + Sync>>,
 }
 
 impl std::error::Error for Error {}
@@ -10,63 +10,67 @@ impl std::error::Error for Error {}
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.kind {
-            ErrorKind::DatabaseError(database_error) => write!(f, "{database_error}"),
-            ErrorKind::TypeError => write!(f, "TypeError"),
+            ErrorKind::Database(db_err_kind) => {
+                write!(f, "DatabaseError [{db_err_kind}]: {}", self.message)
+            }
+            ErrorKind::Type => write!(f, "TypeError: {}", self.message),
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ErrorKind {
-    DatabaseError(DatabaseError),
-    TypeError,
+    Database(DbErrorKind),
+    Type,
 }
 
-
-#[derive(Debug)]
-pub enum DatabaseError {
-    ConnectionError(String),
-    QueryError(String),
+#[derive(Debug, PartialEq)]
+pub enum DbErrorKind {
+    Query,
+    Connection,
+    Other,
 }
 
-impl From<sqlx::Error> for DatabaseError {
+impl std::fmt::Display for DbErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DbErrorKind::Query => write!(f, "Query"),
+            DbErrorKind::Connection => write!(f, "Connection"),
+            DbErrorKind::Other => write!(f, "Other"),
+        }
+    }
+}
+
+impl From<sqlx::Error> for Error {
     fn from(value: sqlx::Error) -> Self {
         match value {
-            sqlx::Error::Configuration(error) => DatabaseError::ConnectionError(error.to_string()), // TODO format with prefixes base don error type
-            sqlx::Error::Database(error) => DatabaseError::QueryError(error.to_string()),
-            sqlx::Error::Io(error) => DatabaseError::ConnectionError(error.to_string()),
-            sqlx::Error::Tls(error) => DatabaseError::ConnectionError(error.to_string()),
-            sqlx::Error::Protocol(error) => DatabaseError::ConnectionError(error.to_string()),
-            sqlx::Error::AnyDriverError(error) => DatabaseError::ConnectionError(error.to_string()),
-            sqlx::Error::Migrate(error) => DatabaseError::ConnectionError(error.to_string()),
-            sqlx::Error::PoolTimedOut => DatabaseError::ConnectionError("Pool timed out".into()),
-            sqlx::Error::PoolClosed => DatabaseError::ConnectionError("Pool closed".into()),
-            sqlx::Error::WorkerCrashed => DatabaseError::ConnectionError("Worker crashed".into()),
-
-            sqlx::Error::RowNotFound => DatabaseError::QueryError("Row not found".to_string()),
-            sqlx::Error::TypeNotFound { type_name } => DatabaseError::QueryError(type_name),
-            sqlx::Error::ColumnIndexOutOfBounds { index, len } => {
-                DatabaseError::QueryError(format!("index={index}, len={len} out of bounds"))
+            sqlx::Error::RowNotFound => Error {
+                kind: ErrorKind::Database(DbErrorKind::Query),
+                message: "no records returned".into(),
+            },
+            sqlx::Error::Configuration(..)
+            | sqlx::Error::Database(..)
+            | sqlx::Error::Io(..)
+            | sqlx::Error::Tls(..)
+            | sqlx::Error::Protocol(..)
+            | sqlx::Error::TypeNotFound { .. }
+            | sqlx::Error::ColumnIndexOutOfBounds { .. }
+            | sqlx::Error::ColumnNotFound(..)
+            | sqlx::Error::ColumnDecode { .. }
+            | sqlx::Error::Encode(..)
+            | sqlx::Error::Decode(..)
+            | sqlx::Error::AnyDriverError(..)
+            | sqlx::Error::PoolTimedOut
+            | sqlx::Error::PoolClosed
+            | sqlx::Error::WorkerCrashed
+            | sqlx::Error::Migrate(..)
+            | _ => {
+                dbg!(value);
+                Error {
+                    kind: ErrorKind::Database(DbErrorKind::Other),
+                    message: "TODO_ERROR: {value:?}".into(),
+                }
             }
-            sqlx::Error::ColumnNotFound(error) => {
-                DatabaseError::QueryError(format!("Column not found: {error}"))
-            }
-            sqlx::Error::ColumnDecode { index: _, source } => {
-                DatabaseError::QueryError(source.to_string())
-            }
-            sqlx::Error::Encode(error) => DatabaseError::QueryError(error.to_string()),
-            sqlx::Error::Decode(error) => DatabaseError::QueryError(error.to_string()),
-            _ => todo!(),
         }
-    }
-}
-
-impl std::fmt::Display for DatabaseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let msg = match self {
-            DatabaseError::ConnectionError(e) => format!("ConnectionError: {e}"),
-            DatabaseError::QueryError(e) => format!("QueryError: {e}"),
-        };
-        write!(f, "{msg}")
     }
 }

@@ -1,5 +1,5 @@
-use serde::Serialize;
 use crate::error::{Error, ErrorKind};
+use serde::Serialize;
 
 #[derive(Serialize, Clone, Copy, PartialEq, Debug, Default)]
 pub enum Country {
@@ -25,7 +25,10 @@ impl TryFrom<String> for Country {
         match value.as_str() {
             "GB" => Ok(Self::GB),
             "US" => Ok(Self::US),
-            invalid => Err(Error {kind: ErrorKind::TypeError, message: format!("{invalid} is not a recognised country code"), source: None }),
+            invalid => Err(Error {
+                kind: ErrorKind::Type,
+                message: format!("{invalid} is not a recognised country code"),
+            }),
         }
     }
 }
