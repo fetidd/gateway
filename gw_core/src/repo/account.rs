@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     account::{AcquirerAccount, BankOneAccount, BankTwoAccount},
     currency::Currency,
-    error::{self, DbErrorKind, Error, ErrorKind},
+    error::{DbErrorKind, Error, ErrorKind},
     payment::Payment,
 };
 
@@ -31,7 +31,6 @@ impl AccountRepo {
             .bind(merchant_id)
             .fetch_one(&**self.pool)
             .await?;
-        dbg!(&row);
         let (acquirer, account_id): (&str, i32) = (
             row.get_unchecked("acquirer"),
             row.get_unchecked("account_id"),

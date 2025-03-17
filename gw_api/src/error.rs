@@ -1,5 +1,5 @@
 use axum::{http::StatusCode, response::IntoResponse, Json};
-use gw_core::error::DatabaseError;
+use gw_core::error::{DbErrorKind, Error, ErrorKind as CoreErrorKind};
 use serde_json::json;
 
 pub type Result<T> = std::result::Result<T, GatewayError>;
@@ -53,15 +53,28 @@ impl std::error::Error for GatewayError {}
 impl From<validify::ValidationErrors> for GatewayError {
     fn from(value: validify::ValidationErrors) -> Self {
         dbg!(value);
-        GatewayError { kind: ErrorKind::Validation, message: String::from("TODO VAL ERROR") }
+        GatewayError {
+            kind: ErrorKind::Validation,
+            message: String::from("TODO VAL ERROR"),
+        }
     }
 }
 
-impl From<DatabaseError> for GatewayError {
-    fn from(value: DatabaseError) -> Self {
-        match value {
-            DatabaseError::ConnectionError(e) => GatewayError { kind: ErrorKind::Fatal, message: format!("{e}") },
-            DatabaseError::QueryError(e) => GatewayError { kind: ErrorKind::Resource, message: format!("{e}")},
+impl From<Error> for GatewayError {
+    fn from(value: Error) -> Self {
+        match value.kind {
+            CoreErrorKind::Database(DbErrorKind::Query) => GatewayError {
+                kind: ErrorKind::Resource,
+                message: format!("{}", value.message),
+            },
+            CoreErrorKind::Database(..) => GatewayError {
+                kind: ErrorKind::Fatal,
+                message: format!("{}", value.message),
+            },
+            CoreErrorKind::Type => GatewayError {
+                kind: ErrorKind::Fatal,
+                message: "Unknown".into(),
+            },
         }
     }
 }

@@ -18,7 +18,7 @@ pub struct AppStateInner {
 }
 
 impl AppStateInner {
-    pub async fn new(pool: Arc<Pool>) -> AppStateInner {
+    pub fn new(pool: Arc<Pool>) -> AppStateInner {
         AppStateInner {
             merchants: MerchantRepo {
                 pool: Arc::clone(&pool),
@@ -32,6 +32,6 @@ impl AppStateInner {
 
 pub type AppState = Arc<Mutex<AppStateInner>>;
 
-pub async fn create_appstate(pool: Pool) -> AppState {
-    Arc::new(Mutex::new(AppStateInner::new(Arc::new(pool)).await))
+pub fn create_appstate(pool: Pool) -> AppState {
+    Arc::new(Mutex::new(AppStateInner::new(Arc::new(pool))))
 }

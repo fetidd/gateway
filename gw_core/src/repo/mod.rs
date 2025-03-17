@@ -37,6 +37,12 @@ impl Deref for Pool {
     }
 }
 
+impl From<PgPool> for Pool {
+    fn from(value: PgPool) -> Self {
+        Self { _pool: value }
+    }
+}
+
 pub trait Repo {
     type Entity: Entity;
     type Id;

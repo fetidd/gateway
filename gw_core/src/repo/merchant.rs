@@ -1,4 +1,4 @@
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use crate::merchant::Merchant;
 use sqlx::{
@@ -25,7 +25,7 @@ impl<'r> FromRow<'r, PgRow> for Merchant {
                 source: Box::new(e),
             })?;
         Ok(Merchant {
-            merchant_id: row.try_get("merchant_id")?,
+            merchant_id: row.try_get("id")?,
             name: row.try_get("name")?,
             premise: row.try_get("premise")?,
             street: row.try_get("street")?,
@@ -39,7 +39,7 @@ impl<'r> FromRow<'r, PgRow> for Merchant {
 
 impl Entity for Merchant {
     fn values_str(&self) -> String {
-        "merchant_id, name, premise, street, city, postcode, country, country".into()
+        "id, name, premise, street, city, postcode, country, country".into()
     }
 
     fn bind_to<'a>(

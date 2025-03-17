@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub struct Error {
-    pub(crate) kind: ErrorKind,
-    pub(crate) message: String,
+    pub kind: ErrorKind,
+    pub message: String,
     // pub(crate) source: Option<Box<dyn std::error::Error + Send + Sync>>,
 }
 

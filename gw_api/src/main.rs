@@ -10,7 +10,7 @@ async fn main() {
     let pool = Pool::new(&db_url)
         .await
         .expect("failed to create database pool");
-    let app_state = create_appstate(pool).await;
+    let app_state = create_appstate(pool);
     let app = create_router(app_state);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     axum::serve(listener, app).await.unwrap();
