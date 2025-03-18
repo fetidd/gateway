@@ -25,15 +25,27 @@ impl AccountRepo {
             Payment::Card { scheme, .. } => scheme,
             Payment::Account { .. } => todo!(),
         };
-        let row = sqlx::query("SELECT DISTINCT acquirer, account_id FROM account.paymentroute WHERE scheme = $1 and currency = $2 and merchant_id = $3 LIMIT 1;")
+        let res = sqlx::query("SELECT DISTINCT acquirer, account_id FROM account.paymentroute WHERE scheme = $1 and currency = $2 and merchant_id = $3 LIMIT 1;")
             .bind(scheme.to_string())
             .bind(currency.to_string())
             .bind(merchant_id)
             .fetch_one(&**self.pool)
-            .await?;
+            .await;
+        if let Err(error) = res {
+            match error {
+                sqlx::Error::RowNotFound => {
+                    return Err(Error {
+                        kind: ErrorKind::Database(DbErrorKind::Query),
+                        message: "no account found".into(),
+                    });
+                }
+                other => return Err(other.into()),
+            }
+        }
+        let res = res.unwrap();
         let (acquirer, account_id): (&str, i32) = (
-            row.get_unchecked("acquirer"),
-            row.get_unchecked("account_id"),
+            res.get_unchecked("acquirer"),
+            res.get_unchecked("account_id"),
         );
         let sql = format!("SELECT * FROM account.{acquirer} WHERE id = $1");
         let row = sqlx::query(&sql)
@@ -125,13 +137,10 @@ mod tests {
             .select_for("merchant123", &payment_data, Currency::GBP)
             .await;
         let expected_kind = ErrorKind::Database(DbErrorKind::Query);
-        let expected_msg = "no records returned";
+        let expected_msg = "no account found";
         let err = actual.unwrap_err();
         assert_eq!(err.kind, expected_kind);
         assert_eq!(err.message, expected_msg);
-        assert_eq!(
-            err.to_string(),
-            "DatabaseError [Query]: no records returned"
-        );
+        assert_eq!(err.to_string(), "DatabaseError [Query]: no account found");
     }
 }

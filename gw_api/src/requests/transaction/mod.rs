@@ -5,7 +5,7 @@ pub mod transaction_option;
 
 use billing::BillingRequest;
 use customer::CustomerRequest;
-use gw_core::transaction::TransactionType;
+use gw_core::{currency::Currency, transaction::TransactionType};
 use payment::PaymentRequest;
 use serde::Deserialize;
 use transaction_option::TransactionOptionRequest;
@@ -13,6 +13,7 @@ use transaction_option::TransactionOptionRequest;
 #[derive(Deserialize, Debug)]
 pub struct TransactionRequest {
     pub amount: u64,
+    pub currency: Currency,
     pub transaction_type: TransactionType,
     pub merchant_id: String,
     pub payment: Option<PaymentRequest>,

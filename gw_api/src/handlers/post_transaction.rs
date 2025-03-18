@@ -1,14 +1,17 @@
+use std::sync::Arc;
+
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 // use eval_macro::eval;
 use gw_core::{
-    billing::Billing, currency::Currency, payment::Payment, repo::Repo,
-    transaction::transaction_builder::TransactionBuilder,
+    account::AcquirerAccount, billing::Billing, currency::Currency, merchant::Merchant,
+    payment::Payment, repo::Repo, transaction::transaction_builder::TransactionBuilder,
 };
+use tokio::sync::Mutex;
 use tracing::instrument;
 use validify::{Validate, Validify};
 
 use crate::{
-    app::AppState,
+    app::{AppState, AppStateInner},
     error::{ErrorKind, GatewayError},
     requests::transaction::TransactionRequest,
     responses::transaction::TransactionResponse,
@@ -18,66 +21,57 @@ use crate::{
 pub async fn handle_post_transaction(
     State(app): State<AppState>,
     Json(mut payload): Json<TransactionRequest>,
-) -> impl IntoResponse {
-    let payment_data = match extract_payment_data(&mut payload) {
-        Ok(p) => p,
-        Err(e) => {
-            return e.into_response();
-        }
-    };
-    if let Err(e) = payment_data.validate().map_err(GatewayError::from) {
-        return e.into_response();
-    }
-    let billing_data = match extract_billing_data(&mut payload) {
-        Ok(p) => p,
-        Err(e) => {
-            return e.into_response();
-        }
-    };
-    // let customer_data = extract_customer_data(&mut payload);
+) -> Result<impl IntoResponse, GatewayError> {
+    let payment = extract_payment_data(&mut payload)?;
+    payment.validate()?;
+    let billing = extract_billing_data(&mut payload)?;
+    // let customer = extract_customer_data(&mut payload)?;
     let merchant_id = payload.merchant_id;
-    let app_access = app.lock().await;
-    let merchant_data = match app_access
-        .merchants
-        .select_one(&merchant_id)
-        .await
-        .map_err(GatewayError::from)
-    {
-        Ok(merchant) => merchant,
-        Err(e) => {
-            return e.into_response();
-        }
-    };
-    let account_data = match app_access
-        .accounts
-        .select_for(&merchant_id, &payment_data, Currency::GBP)
-        .await
-        .map_err(GatewayError::from)
-    {
-        Ok(a) => a,
-        Err(e) => {
-            return e.into_response();
-        }
-    };
+    let merchant = find_merchant(&app, &merchant_id).await?;
+    let account = find_account(&app, &merchant_id, &payment, payload.currency).await?;
     let mut transaction = {
         let tb = TransactionBuilder::new()
             .transaction_type(payload.transaction_type)
             .amount(payload.amount)
-            .payment(payment_data)
-            .billing(billing_data)
-            .merchant(merchant_data)
-            .account(account_data);
+            .payment(payment)
+            .billing(billing)
+            .merchant(merchant)
+            .account(account);
         tb.build()
     };
-    if let Err(validation_error) = transaction.validify() {
-        return GatewayError {
-            kind: ErrorKind::Validation,
-            message: validation_error.to_string(),
-        }
-        .into_response();
-    }
+    transaction.validify()?;
     let response = TransactionResponse::from(&transaction);
-    (StatusCode::CREATED, Json(response)).into_response()
+    Ok((StatusCode::CREATED, Json(response)).into_response())
+}
+
+async fn find_merchant(
+    app: &Arc<Mutex<AppStateInner>>,
+    id: &String,
+) -> Result<Merchant, GatewayError> {
+    let app_access = app.lock().await;
+    let merchant_data = app_access
+        .merchants
+        .select_one(id)
+        .await
+        .map_err(|_| GatewayError {
+            kind: ErrorKind::Resource,
+            message: format!("merchant {id} does not exist"),
+        })?;
+    Ok(merchant_data)
+}
+
+async fn find_account(
+    app: &Arc<Mutex<AppStateInner>>,
+    merchant_id: &String,
+    payment_data: &Payment,
+    currency: Currency,
+) -> Result<AcquirerAccount, GatewayError> {
+    let app_access = app.lock().await;
+    let account_data = app_access
+        .accounts
+        .select_for(&merchant_id, &payment_data, currency)
+        .await?;
+    Ok(account_data)
 }
 
 fn extract_payment_data(payload: &mut TransactionRequest) -> Result<Payment, GatewayError> {

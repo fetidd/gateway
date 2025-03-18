@@ -254,7 +254,7 @@ mod tests {
         }
 
         fn table_name(&self) -> &'static str {
-            todo!()
+            "test"
         }
     }
 
@@ -267,7 +267,7 @@ mod tests {
         }
 
         fn table_name(&self) -> &'static str {
-            todo!()
+            "test"
         }
     }
 }

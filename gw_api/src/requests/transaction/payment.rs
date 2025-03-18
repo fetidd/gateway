@@ -49,7 +49,7 @@ impl PaymentRequest {
 }
 
 fn create_missing_error<T>(missing: &[&'static str]) -> Result<T, GatewayError> {
-    let message = format!("Missing fields: {}", missing.join(", "));
+    let message = format!("missing fields: {}", missing.join(", "));
     Err(GatewayError {
         kind: Validation,
         message,

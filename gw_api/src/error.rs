@@ -39,12 +39,12 @@ impl IntoResponse for GatewayError {
 
 impl std::fmt::Display for GatewayError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let prefix = match self.kind {
-            ErrorKind::Validation => "ValidationError",
-            ErrorKind::Resource => "ResourceError",
-            ErrorKind::Fatal => "FatalError",
-        };
-        write!(f, "{prefix}: {}", self.message)
+        // let prefix = match self.kind {
+        //     ErrorKind::Validation => "ValidationError",
+        //     ErrorKind::Resource => "ResourceError",
+        //     ErrorKind::Fatal => "FatalError",
+        // };
+        write!(f, "{}", self.message)
     }
 }
 

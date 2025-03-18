@@ -1,57 +1,83 @@
-use axum_test::TestServer;
-use gw_api::app::{create_appstate, create_router};
-use gw_core::repo::Pool;
+mod common;
+use common::{create_request, create_server, CreateRequestAction};
 use serde_json::json;
 use sqlx;
 
-#[sqlx::test(migrations = "../gw_core/migrations")]
-async fn simple_transaction(_pool: sqlx::PgPool) {
-    let server = create_server(_pool.clone());
-    let response = server
-        .post("/transaction")
-        .json(&json!({
-            "amount": 12345,
-            "currency": "GBP",
-            "transaction_type": "Auth",
-            "merchant_id": "merchant123",
-            "payment": {
-                "scheme": "VISA",
-                "pan": "4000111122223333",
-                "security_code": "123",
-                "expiry_year": 2026,
-                "expiry_month": 12,
-                "payment_type": "CARD"
-            },
-            "billing": {
-                "country": "GB"
-            }
-        }))
-        .await;
-    assert_eq!(response.status_code(), 201);
-    assert_eq!(
-        response.json::<serde_json::Value>(),
-        json!({
-            "amount": 12345,
-            "currency": "GBP",
-            "payment": {
-                "scheme": "VISA",
-                "pan": "400011######3333",
-                "expiry_year": 2026,
-                "expiry_month": 12,
-                "type": "CARD"
-            },
-            "billing": {
-                "country": "GB"
-            },
-            "status": "SUCCESS"
-        })
-    );
+macro_rules! test_case {
+    ($name:ident, $endpoint:expr, $status_code:expr, $body:expr, $overrides:expr) => {
+        #[sqlx::test(migrations = "../gw_core/migrations")]
+        async fn $name(_pool: sqlx::PgPool) {
+            let server = create_server(_pool.clone());
+            let overrides = $overrides;
+            let response = server
+                .post($endpoint)
+                .json(&create_request(overrides))
+                .await;
+            assert_eq!(response.status_code(), $status_code);
+            assert_eq!(response.json::<serde_json::Value>(), $body);
+        }
+    };
+    ($name:ident, $endpoint:expr, $status_code:expr, $body:expr) => {
+        #[sqlx::test(migrations = "../gw_core/migrations")]
+        async fn $name(_pool: sqlx::PgPool) {
+            let server = create_server(_pool.clone());
+            let response = server
+                .post($endpoint)
+                .json(&create_request(Vec::<CreateRequestAction>::new()))
+                .await;
+            assert_eq!(response.status_code(), $status_code);
+            assert_eq!(response.json::<serde_json::Value>(), $body);
+        }
+    };
 }
 
-fn create_server(pool: sqlx::PgPool) -> TestServer {
-    let pool = Pool::from(pool);
-    let app_state = create_appstate(pool);
-    let router = create_router(app_state);
-    let server = TestServer::new(router).expect("creating server failed");
-    server
-}
+test_case! {simple_transaction, "/transaction", 201, json!({
+    "amount": 12345,
+    "currency": "GBP",
+    "payment": {
+        "scheme": "VISA",
+        "pan": "400011######3333",
+        "expiry_year": 2026,
+        "expiry_month": 12,
+        "type": "CARD"
+    },
+    "billing": {
+        "country": "GB"
+    },
+    "status": "SUCCESS"
+})}
+
+test_case! {merchant_doesnt_exist, "/transaction", 404, json!({
+    "error": "RESOURCE",
+    "message": "merchant invalid123 does not exist"
+}), vec![("merchant_id", "invalid123").into()]}
+
+test_case! {missing_payment_details, "/transaction", 400, json!({
+    "error": "VALIDATION",
+    "message": "missing payment data"
+}), vec!["!payment".into()]}
+
+test_case! {missing_pan, "/transaction", 400, json!({
+    "error": "VALIDATION",
+    "message": "missing fields: pan"
+}), vec!["!payment.pan".into()]}
+
+test_case! {bad_pan, "/transaction", 400, json!({
+    "error": "VALIDATION",
+    "message": "invalid pan length"
+}), vec![("payment.pan", "400011112222333344445555").into()]}
+
+test_case! {missing_pan_and_security_code, "/transaction", 400, json!({
+    "error": "VALIDATION",
+    "message": "missing fields: pan, security_code"
+}), vec!["!payment.pan".into(), "!payment.security_code".into()]}
+
+test_case! {no_account, "/transaction", 404, json!({
+    "error": "RESOURCE",
+    "message": "no account found"
+}), vec![("currency", "JPY").into()]}
+
+test_case! {no_account_or_country_but_country_errors, "/transaction", 400, json!({
+    "error": "VALIDATION",
+    "message": "TypeError:  is not a recognised country code"
+}), vec![("currency", "JPY").into(), "!billing.country".into()]}
