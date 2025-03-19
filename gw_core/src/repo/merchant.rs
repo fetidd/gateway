@@ -44,7 +44,7 @@ impl<'r> FromRow<'r, PgRow> for Merchant {
 }
 
 impl Entity for Merchant {
-    fn values_str(&self) -> String {
+    fn values_str_for_insert(&self) -> String {
         "id, name, premise, street, city, postcode, country, country".into()
     }
 
@@ -64,6 +64,10 @@ impl Entity for Merchant {
 
     fn table_name(&self) -> &'static str {
         "account.merchant"
+    }
+
+    fn values_str_for_update(&self) -> String {
+        todo!()
     }
 }
 

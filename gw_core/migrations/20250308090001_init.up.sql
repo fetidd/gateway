@@ -57,7 +57,6 @@ CREATE TABLE IF NOT EXISTS transaction.bankone (
     reference TEXT PRIMARY KEY,
     transaction_type TEXT NOT NULL,
     merchant_id varchar(255) REFERENCES account.merchant NOT NULL,
-    merchant_identification_value TEXT NOT NULL,
     amount INTEGER NOT NULL,
     currency TEXT NOT NULL,
     card_scheme TEXT default '',
@@ -73,14 +72,15 @@ CREATE TABLE IF NOT EXISTS transaction.bankone (
     customer_street TEXT DEFAULT '',
     customer_city TEXT DEFAULT '',
     customer_country TEXT DEFAULT '',
-    customer_county TEXT DEFAULT 'GB'
+    customer_county TEXT DEFAULT 'GB',
+
+    merchant_identification_value TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS transaction.banktwo (
     reference TEXT PRIMARY KEY,
     transaction_type TEXT NOT NULL,
     merchant_id varchar(255) REFERENCES account.merchant NOT NULL,
-    banktwo_merchant_id TEXT NOT NULL,
     amount INTEGER NOT NULL,
     currency TEXT NOT NULL,
     card_scheme TEXT default '',
@@ -96,6 +96,8 @@ CREATE TABLE IF NOT EXISTS transaction.banktwo (
     customer_street TEXT DEFAULT '',
     customer_city TEXT DEFAULT '',
     customer_country TEXT DEFAULT '',
-    customer_county TEXT DEFAULT 'GB'
+    customer_county TEXT DEFAULT 'GB',
+    
+    banktwo_merchant_id TEXT NOT NULL
 );
 

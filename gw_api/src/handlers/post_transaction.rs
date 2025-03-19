@@ -40,6 +40,18 @@ pub async fn handle_post_transaction(
         tb.build()
     };
     transaction.validify()?;
+    {
+        let _guard = app.lock().await;
+        _guard.transactions.insert_one(&transaction).await?;
+    }
+    // send the transaction off to acquirers etc.
+    {
+        let _guard = app.lock().await;
+        _guard
+            .transactions
+            .update_one(&transaction.reference, &transaction)
+            .await?;
+    }
     let response = TransactionResponse::from(&transaction);
     Ok((StatusCode::CREATED, Json(response)).into_response())
 }

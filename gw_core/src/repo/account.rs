@@ -25,7 +25,7 @@ impl Repo for AccountRepo {
 }
 
 impl Entity for AcquirerAccount {
-    fn values_str(&self) -> String {
+    fn values_str_for_insert(&self) -> String {
         match self {
             AcquirerAccount::BankOne(bank_one_account) => todo!(),
             AcquirerAccount::BankTwo(bank_two_account) => todo!(),
@@ -46,6 +46,13 @@ impl Entity for AcquirerAccount {
         match self {
             AcquirerAccount::BankOne(..) => "account.bankone",
             AcquirerAccount::BankTwo(..) => "account.bankone",
+        }
+    }
+
+    fn values_str_for_update(&self) -> String {
+        match self {
+            AcquirerAccount::BankOne(bank_one_account) => todo!(),
+            AcquirerAccount::BankTwo(bank_two_account) => todo!(),
         }
     }
 }

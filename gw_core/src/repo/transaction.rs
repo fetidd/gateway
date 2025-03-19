@@ -6,8 +6,9 @@ use crate::transaction::Transaction;
 
 use super::{Entity, Pool, Repo};
 
+#[derive(Debug)]
 pub struct TransactionRepo {
-    pool: Arc<Pool>,
+    pub pool: Arc<Pool>,
 }
 
 impl Repo for TransactionRepo {
@@ -28,7 +29,7 @@ impl<'r> FromRow<'r, PgRow> for Transaction {
 }
 
 impl Entity for Transaction {
-    fn values_str(&self) -> String {
+    fn values_str_for_insert(&self) -> String {
         todo!()
     }
 
@@ -44,5 +45,9 @@ impl Entity for Transaction {
             crate::account::AcquirerAccount::BankOne(..) => "transaction.bankone",
             crate::account::AcquirerAccount::BankTwo(..) => "transaction.banktwo",
         }
+    }
+
+    fn values_str_for_update(&self) -> String {
+        todo!()
     }
 }

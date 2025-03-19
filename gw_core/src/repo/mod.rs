@@ -45,7 +45,7 @@ impl From<PgPool> for Pool {
 
 pub trait Repo {
     type Entity: Entity;
-    type Id;
+    type Id: std::fmt::Display;
 
     #[allow(async_fn_in_trait)] // only using in own code
     async fn select_one(&self, id: &Self::Id, table: &str) -> Result<Self::Entity, Error>
@@ -70,7 +70,7 @@ pub trait Repo {
         let stmt = format!(
             "INSERT INTO {} VALUES ({}) RETURNING id",
             entity.table_name(),
-            entity.values_str(),
+            entity.values_str_for_insert(),
         );
         let query = sqlx::query(&stmt);
         let query = entity.bind_to(query);
@@ -82,12 +82,35 @@ pub trait Repo {
         Ok(id)
     }
 
+    /// Updates a whole entity in the db with the one passed in
+    #[allow(async_fn_in_trait)]
+    async fn update_one<'e>(&self, id: &Self::Id, entity: &'e Self::Entity) -> Result<(), Error>
+    where
+        for<'a> <Self as Repo>::Id: Decode<'a, Postgres> + Type<Postgres>,
+    {
+        let stmt = format!(
+            "UPDATE {} SET {} WHERE id = {id}",
+            entity.table_name(),
+            entity.values_str_for_update()
+        );
+        let query = sqlx::query(&stmt);
+        let query = entity.bind_to(query);
+        query
+            .execute(self.pool())
+            .await
+            .map_err(|e| Error::from(e))?;
+        Ok(())
+    }
+
     fn pool(&self) -> &PgPool;
 }
 
 pub trait Entity: for<'r> FromRow<'r, PgRow> + Send + Unpin {
     /// The string to be passed into the SQL INSERT query after VALUES
-    fn values_str(&self) -> String;
+    fn values_str_for_insert(&self) -> String;
+
+    /// The string to use after SET in the sql statement
+    fn values_str_for_update(&self) -> String;
 
     /// Takes in a Query so that the Entity can correctly bind its parameters to it
     /// in the order specified in values_str
@@ -169,6 +192,33 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_update_one(pool: PgPool) {
+        sqlx::query("create table test (id serial, name text)")
+            .execute(&pool)
+            .await
+            .unwrap();
+        sqlx::query("insert into test (name) values ($1)")
+            .bind("test")
+            .execute(&pool)
+            .await
+            .unwrap();
+        let repo = TestRepo::new(pool.clone());
+        let update = TestDomain {
+            id: 2,
+            name: "new_name".into(),
+        };
+        assert!(repo.update_one(&1, &update).await.is_ok());
+        let check = sqlx::query("SELECT * FROM test WHERE id = 1")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        let id: i32 = check.get_unchecked("id");
+        let name: &str = check.get_unchecked("name");
+        assert_eq!(id, 1);
+        assert_eq!(name, "new_name");
+    }
+
     struct TestRepo {
         pub pool: PgPool,
     }
@@ -218,12 +268,16 @@ mod tests {
             stmt.bind(self.name.clone())
         }
 
-        fn values_str(&self) -> String {
+        fn values_str_for_insert(&self) -> String {
             "DEFAULT, $1".into()
         }
 
         fn table_name(&self) -> &'static str {
             "test"
+        }
+
+        fn values_str_for_update(&self) -> String {
+            "name = $1".into()
         }
     }
 
@@ -244,12 +298,16 @@ mod tests {
             stmt.bind(self.number).bind(self.name.clone())
         }
 
-        fn values_str(&self) -> String {
+        fn values_str_for_insert(&self) -> String {
             "$1, $2".into()
         }
 
         fn table_name(&self) -> &'static str {
             "test"
+        }
+
+        fn values_str_for_update(&self) -> String {
+            todo!()
         }
     }
 

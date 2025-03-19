@@ -1,5 +1,7 @@
 use axum::{routing::post, Router};
-use gw_core::repo::{account::AccountRepo, merchant::MerchantRepo, Pool};
+use gw_core::repo::{
+    account::AccountRepo, merchant::MerchantRepo, transaction::TransactionRepo, Pool,
+};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -15,6 +17,7 @@ pub fn create_router(app_state: AppState) -> Router {
 pub struct AppStateInner {
     pub merchants: MerchantRepo,
     pub accounts: AccountRepo,
+    pub transactions: TransactionRepo,
 }
 
 impl AppStateInner {
@@ -24,6 +27,9 @@ impl AppStateInner {
                 pool: Arc::clone(&pool),
             },
             accounts: AccountRepo {
+                pool: Arc::clone(&pool),
+            },
+            transactions: TransactionRepo {
                 pool: Arc::clone(&pool),
             },
         }
