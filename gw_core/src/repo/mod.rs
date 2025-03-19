@@ -45,7 +45,7 @@ impl From<PgPool> for Pool {
 
 pub trait Repo {
     type Entity: Entity;
-    type Id: std::fmt::Display;
+    type Id;
 
     #[allow(async_fn_in_trait)] // only using in own code
     async fn select_one(&self, id: &Self::Id, table: &str) -> Result<Self::Entity, Error>
@@ -67,13 +67,11 @@ pub trait Repo {
     where
         for<'a> <Self as Repo>::Id: Decode<'a, Postgres> + Type<Postgres>,
     {
-        let stmt = format!(
-            "INSERT INTO {} VALUES ({}) RETURNING id",
-            entity.table_name(),
-            entity.values_str_for_insert(),
-        );
+        let table_name = entity.table_name();
+        let values = entity.values_str_for_insert();
+        let stmt = format!("INSERT INTO {table_name} VALUES ({values}) RETURNING id",);
         let query = sqlx::query(&stmt);
-        let query = entity.bind_to(query);
+        let query = entity.bind_to_insert(query);
         let res = query
             .fetch_one(self.pool())
             .await
@@ -87,14 +85,13 @@ pub trait Repo {
     async fn update_one<'e>(&self, id: &Self::Id, entity: &'e Self::Entity) -> Result<(), Error>
     where
         for<'a> <Self as Repo>::Id: Decode<'a, Postgres> + Type<Postgres>,
+        for<'i> <Self as Repo>::Id: std::fmt::Display + Encode<'i, Postgres> + Type<Postgres>,
     {
-        let stmt = format!(
-            "UPDATE {} SET {} WHERE id = {id}",
-            entity.table_name(),
-            entity.values_str_for_update()
-        );
-        let query = sqlx::query(&stmt);
-        let query = entity.bind_to(query);
+        let table_name = entity.table_name();
+        let values = entity.values_str_for_update();
+        let stmt = format!("UPDATE {table_name} SET {values} WHERE id = $1",);
+        let query = sqlx::query(&stmt).bind(id);
+        let query = entity.bind_to_update(query);
         query
             .execute(self.pool())
             .await
@@ -114,7 +111,14 @@ pub trait Entity: for<'r> FromRow<'r, PgRow> + Send + Unpin {
 
     /// Takes in a Query so that the Entity can correctly bind its parameters to it
     /// in the order specified in values_str
-    fn bind_to<'a>(
+    fn bind_to_insert<'a>(
+        &'a self,
+        stmt: Query<'a, Postgres, PgArguments>,
+    ) -> Query<'a, Postgres, PgArguments>;
+
+    /// Takes in a Query so that the Entity can correctly bind its parameters to it
+    /// in the order specified in values_str
+    fn bind_to_update<'a>(
         &'a self,
         stmt: Query<'a, Postgres, PgArguments>,
     ) -> Query<'a, Postgres, PgArguments>;
@@ -261,7 +265,7 @@ mod tests {
     }
 
     impl Entity for TestDomain {
-        fn bind_to<'a>(
+        fn bind_to_insert<'a>(
             &'a self,
             stmt: Query<'a, Postgres, PgArguments>,
         ) -> Query<'a, Postgres, PgArguments> {
@@ -279,6 +283,13 @@ mod tests {
         fn values_str_for_update(&self) -> String {
             "name = $1".into()
         }
+
+        fn bind_to_update<'a>(
+            &'a self,
+            stmt: Query<'a, Postgres, PgArguments>,
+        ) -> Query<'a, Postgres, PgArguments> {
+            todo!()
+        }
     }
 
     impl<'a> FromRow<'a, PgRow> for TestDomainNoAuto {
@@ -291,7 +302,7 @@ mod tests {
     }
 
     impl Entity for TestDomainNoAuto {
-        fn bind_to<'a>(
+        fn bind_to_insert<'a>(
             &'a self,
             stmt: Query<'a, Postgres, PgArguments>,
         ) -> Query<'a, Postgres, PgArguments> {
@@ -307,6 +318,13 @@ mod tests {
         }
 
         fn values_str_for_update(&self) -> String {
+            todo!()
+        }
+
+        fn bind_to_update<'a>(
+            &'a self,
+            stmt: Query<'a, Postgres, PgArguments>,
+        ) -> Query<'a, Postgres, PgArguments> {
             todo!()
         }
     }

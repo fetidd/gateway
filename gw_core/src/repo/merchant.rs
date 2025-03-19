@@ -48,7 +48,7 @@ impl Entity for Merchant {
         "id, name, premise, street, city, postcode, country, country".into()
     }
 
-    fn bind_to<'a>(
+    fn bind_to_insert<'a>(
         &'a self,
         stmt: Query<'a, Postgres, PgArguments>,
     ) -> Query<'a, Postgres, PgArguments> {
@@ -67,6 +67,13 @@ impl Entity for Merchant {
     }
 
     fn values_str_for_update(&self) -> String {
+        todo!()
+    }
+
+    fn bind_to_update<'a>(
+        &'a self,
+        stmt: Query<'a, Postgres, PgArguments>,
+    ) -> Query<'a, Postgres, PgArguments> {
         todo!()
     }
 }

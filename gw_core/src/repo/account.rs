@@ -32,7 +32,7 @@ impl Entity for AcquirerAccount {
         }
     }
 
-    fn bind_to<'a>(
+    fn bind_to_insert<'a>(
         &'a self,
         stmt: Query<'a, Postgres, PgArguments>,
     ) -> Query<'a, Postgres, PgArguments> {
@@ -54,6 +54,13 @@ impl Entity for AcquirerAccount {
             AcquirerAccount::BankOne(bank_one_account) => todo!(),
             AcquirerAccount::BankTwo(bank_two_account) => todo!(),
         }
+    }
+
+    fn bind_to_update<'a>(
+        &'a self,
+        stmt: Query<'a, Postgres, PgArguments>,
+    ) -> Query<'a, Postgres, PgArguments> {
+        todo!()
     }
 }
 
