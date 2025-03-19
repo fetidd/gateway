@@ -1,6 +1,6 @@
 pub mod account;
 pub mod merchant;
-// pub mod transaction;
+pub mod transaction;
 
 use std::ops::Deref;
 
@@ -48,13 +48,12 @@ pub trait Repo {
     type Id;
 
     #[allow(async_fn_in_trait)] // only using in own code
-    async fn select_one(&self, id: &Self::Id) -> Result<Self::Entity, Error>
+    async fn select_one(&self, id: &Self::Id, table: &str) -> Result<Self::Entity, Error>
     where
         for<'i> <Self as Repo>::Id: std::fmt::Display + Encode<'i, Postgres> + Type<Postgres>,
     {
         let res = query_as::<_, Self::Entity>(&format!(
-            "SELECT * FROM {} WHERE id = $1",
-            self.table_name()
+            "SELECT *, tableoid::regclass::text as table_name FROM {table} WHERE id = $1",
         ))
         .bind(id)
         .fetch_one(self.pool())
@@ -70,7 +69,7 @@ pub trait Repo {
     {
         let stmt = format!(
             "INSERT INTO {} VALUES ({}) RETURNING id",
-            self.table_name(),
+            entity.table_name(),
             entity.values_str(),
         );
         let query = sqlx::query(&stmt);
@@ -83,7 +82,6 @@ pub trait Repo {
         Ok(id)
     }
 
-    fn table_name(&self) -> &'static str;
     fn pool(&self) -> &PgPool;
 }
 
@@ -97,6 +95,8 @@ pub trait Entity: for<'r> FromRow<'r, PgRow> + Send + Unpin {
         &'a self,
         stmt: Query<'a, Postgres, PgArguments>,
     ) -> Query<'a, Postgres, PgArguments>;
+
+    fn table_name(&self) -> &'static str;
 }
 
 #[cfg(test)]
@@ -159,7 +159,7 @@ mod tests {
             .await
             .unwrap();
         let repo = TestRepo::new(pool);
-        let res = repo.select_one(&1).await.unwrap();
+        let res = repo.select_one(&1, "test").await.unwrap();
         assert_eq!(
             res,
             TestDomain {
@@ -221,6 +221,10 @@ mod tests {
         fn values_str(&self) -> String {
             "DEFAULT, $1".into()
         }
+
+        fn table_name(&self) -> &'static str {
+            "test"
+        }
     }
 
     impl<'a> FromRow<'a, PgRow> for TestDomainNoAuto {
@@ -243,6 +247,10 @@ mod tests {
         fn values_str(&self) -> String {
             "$1, $2".into()
         }
+
+        fn table_name(&self) -> &'static str {
+            "test"
+        }
     }
 
     impl Repo for TestRepo {
@@ -252,10 +260,6 @@ mod tests {
         fn pool(&self) -> &PgPool {
             &self.pool
         }
-
-        fn table_name(&self) -> &'static str {
-            "test"
-        }
     }
 
     impl Repo for TestRepoNoAuto {
@@ -264,10 +268,6 @@ mod tests {
 
         fn pool(&self) -> &PgPool {
             &self.pool
-        }
-
-        fn table_name(&self) -> &'static str {
-            "test"
         }
     }
 }

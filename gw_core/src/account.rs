@@ -1,3 +1,5 @@
+use sqlx::{postgres::PgArguments, query::Query, Postgres};
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct BankOneAccount {
     pub merchant_identification_value: String,
@@ -12,6 +14,15 @@ pub struct BankTwoAccount {
 pub enum AcquirerAccount {
     BankOne(BankOneAccount),
     BankTwo(BankTwoAccount),
+}
+
+impl AcquirerAccount {
+    pub fn get_db_values_str(&self) -> String {
+        todo!()
+    }
+    pub fn bind_to(&self, stmt: Query<Postgres, PgArguments>) -> Query<Postgres, PgArguments> {
+        todo!()
+    }
 }
 
 trait Iso8853<'a> {

@@ -10,6 +10,8 @@ tracing = "0.1.41"
 validify = "2.0.0"
 sqlx = { version = "0.8", features = ["runtime-tokio", "macros", "derive", "postgres"] }
 tokio = { version = "1.43.0", features = ["macros"] }
+uuid = { version = "1.16.0", features = ["v4"] }
+regex = "1.11.1"
 
 [dev-dependencies]
 rstest = "0.24.0"

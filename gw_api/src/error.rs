@@ -52,10 +52,21 @@ impl std::error::Error for GatewayError {}
 
 impl From<validify::ValidationErrors> for GatewayError {
     fn from(value: validify::ValidationErrors) -> Self {
-        dbg!(value);
+        let errors = value
+            .errors()
+            .into_iter()
+            .map(|e| {
+                format!(
+                    "{} - {}",
+                    e.field_name().unwrap_or("schema"),
+                    e.message().unwrap_or("".into())
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
         GatewayError {
             kind: ErrorKind::Validation,
-            message: String::from("TODO VAL ERROR"),
+            message: errors,
         }
     }
 }

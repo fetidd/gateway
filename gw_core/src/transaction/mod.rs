@@ -37,6 +37,7 @@ pub enum TransactionError {}
 #[derive(Debug, Validify)]
 #[validate(validate_transaction)]
 pub struct Transaction {
+    pub reference: String,
     pub r#type: TransactionType,
     pub amount: Amount,
     pub payment: Payment,

@@ -49,3 +49,53 @@ INSERT INTO account.paymentroute VALUES
 ;
 
 -- GRANT ALL ON account.paymentroute TO gwuser;
+
+
+CREATE SCHEMA IF NOT EXISTS transaction;
+
+CREATE TABLE IF NOT EXISTS transaction.bankone (
+    reference TEXT PRIMARY KEY,
+    transaction_type TEXT NOT NULL,
+    merchant_id varchar(255) REFERENCES account.merchant NOT NULL,
+    merchant_identification_value TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    card_scheme TEXT default '',
+    expiry_date TEXT DEFAULT '',
+    billing_name TEXT DEFAULT '',
+    billing_premise TEXT DEFAULT '',
+    billing_street TEXT DEFAULT '',
+    billing_city TEXT DEFAULT '',
+    billing_country TEXT DEFAULT '',
+    billing_county TEXT DEFAULT 'GB',
+    customer_name TEXT DEFAULT '',
+    customer_premise TEXT DEFAULT '',
+    customer_street TEXT DEFAULT '',
+    customer_city TEXT DEFAULT '',
+    customer_country TEXT DEFAULT '',
+    customer_county TEXT DEFAULT 'GB'
+);
+
+CREATE TABLE IF NOT EXISTS transaction.banktwo (
+    reference TEXT PRIMARY KEY,
+    transaction_type TEXT NOT NULL,
+    merchant_id varchar(255) REFERENCES account.merchant NOT NULL,
+    banktwo_merchant_id TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    card_scheme TEXT default '',
+    expiry_date TEXT DEFAULT '',
+    billing_name TEXT DEFAULT '',
+    billing_premise TEXT DEFAULT '',
+    billing_street TEXT DEFAULT '',
+    billing_city TEXT DEFAULT '',
+    billing_country TEXT DEFAULT '',
+    billing_county TEXT DEFAULT 'GB',
+    customer_name TEXT DEFAULT '',
+    customer_premise TEXT DEFAULT '',
+    customer_street TEXT DEFAULT '',
+    customer_city TEXT DEFAULT '',
+    customer_country TEXT DEFAULT '',
+    customer_county TEXT DEFAULT 'GB'
+);
+

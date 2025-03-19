@@ -8,6 +8,7 @@ axum = { version = "0.8.1", features = ["macros"] }
 dotenvy = "0.15.7"
 # eval-macro = "0.5.0"
 gw_core = { path = "../gw_core" }
+regex = "1.11.1"
 serde = { version = "1.0.218", features = ["derive"] }
 serde_json = "1.0.139"
 tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }

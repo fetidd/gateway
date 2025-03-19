@@ -18,6 +18,7 @@ pub struct TransactionResponse<'a> {
     pub status: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<TransactionError>,
+    pub reference: String,
 }
 
 impl<'a> From<&'a Transaction> for TransactionResponse<'a> {
@@ -35,6 +36,7 @@ impl<'a> From<&'a Transaction> for TransactionResponse<'a> {
             billing: (&value.billing).into(),
             status: value.status.to_string(),
             error: if let Some(e) = error { e.clone() } else { None },
+            reference: value.reference.clone(),
         }
     }
 }
@@ -90,22 +92,24 @@ mod tests {
             billing: BillingResponse::default(),
             status: "SUCCESS".into(),
             error: None,
+            reference: trx.reference.clone(),
         };
-        let exp_json = r#"{
+        let exp_json = r#"\{
   "amount": 12345,
   "currency": "GBP",
-  "payment": {
+  "payment": \{
     "type": "CARD",
     "scheme": "VISA",
     "expiry_month": 1,
     "expiry_year": 2023,
     "pan": "400011######3333"
-  },
-  "billing": {
+  \},
+  "billing": \{
     "country": "GB"
-  },
-  "status": "SUCCESS"
-}"#;
+  \},
+  "status": "SUCCESS",
+  "reference": "[0-9a-z-]+"
+\}"#;
         check_serialize_to_response(&trx, &exp, exp_json);
     }
 }

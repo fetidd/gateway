@@ -1,6 +1,6 @@
-use std::marker::PhantomData;
-
 use super::*;
+use std::marker::PhantomData;
+use uuid::Uuid;
 
 #[derive(Default)]
 pub struct TransactionBuilder<T, A, P, Acc, M, B> {
@@ -62,6 +62,7 @@ impl TransactionBuilder<HasType, HasAmount, HasPayment, HasAccount, HasMerchant,
             account: self.account.unwrap(),
             customer: self.customer,
             status: TransactionStatus::Success,
+            reference: Uuid::new_v4().to_string(),
         }
     }
 }
@@ -207,7 +208,8 @@ mod tests {
                     merchant_identification_value: "12345678".into()
                 }),
                 customer: None,
-                status: TransactionStatus::Success
+                status: TransactionStatus::Success,
+                reference: trx.reference.clone()
             }
         )
     }

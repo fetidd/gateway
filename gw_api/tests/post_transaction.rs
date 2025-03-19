@@ -8,13 +8,21 @@ macro_rules! test_case {
         #[sqlx::test(migrations = "../gw_core/migrations")]
         async fn $name(_pool: sqlx::PgPool) {
             let server = create_server(_pool.clone());
-            let overrides = $overrides;
             let response = server
                 .post($endpoint)
-                .json(&create_request(overrides))
+                .json(&create_request($overrides))
                 .await;
             assert_eq!(response.status_code(), $status_code);
-            assert_eq!(response.json::<serde_json::Value>(), $body);
+            let res_json = response.json::<serde_json::Value>();
+            let exp_regex = regex::Regex::new(
+                // this means we can't use {123} repetition specifiers in the regex :()
+                &$body
+                    .to_string()
+                    .replace("{", r#"\{"#)
+                    .replace("}", r#"\}"#),
+            )
+            .expect("bad regex!");
+            assert!(exp_regex.is_match(&res_json.to_string()));
         }
     };
     ($name:ident, $endpoint:expr, $status_code:expr, $body:expr) => {
@@ -26,7 +34,15 @@ macro_rules! test_case {
                 .json(&create_request(Vec::<CreateRequestAction>::new()))
                 .await;
             assert_eq!(response.status_code(), $status_code);
-            assert_eq!(response.json::<serde_json::Value>(), $body);
+            let res_json = response.json::<serde_json::Value>();
+            let exp_regex = regex::Regex::new(
+                &$body
+                    .to_string()
+                    .replace("{", r#"\{"#)
+                    .replace("}", r#"\}"#),
+            )
+            .expect("bad regex!");
+            assert!(exp_regex.is_match(&res_json.to_string()));
         }
     };
 }
@@ -44,7 +60,8 @@ test_case! {simple_transaction, "/transaction", 201, json!({
     "billing": {
         "country": "GB"
     },
-    "status": "SUCCESS"
+    "status": "SUCCESS",
+    "reference": "[a-z0-9-]+"
 })}
 
 test_case! {merchant_doesnt_exist, "/transaction", 404, json!({
@@ -64,7 +81,7 @@ test_case! {missing_pan, "/transaction", 400, json!({
 
 test_case! {bad_pan, "/transaction", 400, json!({
     "error": "VALIDATION",
-    "message": "invalid pan length"
+    "message": "pan - invalid length"
 }), vec![("payment.pan", "400011112222333344445555").into()]}
 
 test_case! {missing_pan_and_security_code, "/transaction", 400, json!({

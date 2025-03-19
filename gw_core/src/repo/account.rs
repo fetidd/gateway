@@ -14,6 +14,53 @@ pub struct AccountRepo {
     pub pool: Arc<Pool>,
 }
 
+impl Repo for AccountRepo {
+    type Entity = AcquirerAccount;
+
+    type Id = i32;
+
+    fn pool(&self) -> &PgPool {
+        &**self.pool
+    }
+}
+
+impl Entity for AcquirerAccount {
+    fn values_str(&self) -> String {
+        match self {
+            AcquirerAccount::BankOne(bank_one_account) => todo!(),
+            AcquirerAccount::BankTwo(bank_two_account) => todo!(),
+        }
+    }
+
+    fn bind_to<'a>(
+        &'a self,
+        stmt: Query<'a, Postgres, PgArguments>,
+    ) -> Query<'a, Postgres, PgArguments> {
+        match self {
+            AcquirerAccount::BankOne(bank_one_account) => todo!(),
+            AcquirerAccount::BankTwo(bank_two_account) => todo!(),
+        }
+    }
+
+    fn table_name(&self) -> &'static str {
+        match self {
+            AcquirerAccount::BankOne(..) => "account.bankone",
+            AcquirerAccount::BankTwo(..) => "account.bankone",
+        }
+    }
+}
+
+impl<'r> FromRow<'r, PgRow> for AcquirerAccount {
+    fn from_row(row: &'r PgRow) -> Result<Self, sqlx::Error> {
+        let table_name: &str = row.get("table_name"); // using 'tableoid::regclass::text as table_name' in the select, this allows us to know which acquirer we are turnting the row into
+        match table_name {
+            "account.bankone" => Ok(AcquirerAccount::BankOne(BankOneAccount::from_row(row)?)),
+            "account.banktwo" => Ok(AcquirerAccount::BankTwo(BankTwoAccount::from_row(row)?)),
+            invalid => panic!("{invalid} is invalid acquirer"),
+        }
+    }
+}
+
 impl AccountRepo {
     pub async fn select_for(
         &self,
@@ -43,27 +90,10 @@ impl AccountRepo {
             }
         }
         let res = res.unwrap();
-        let (acquirer, account_id): (&str, i32) = (
-            res.get_unchecked("acquirer"),
-            res.get_unchecked("account_id"),
-        );
-        let sql = format!("SELECT * FROM account.{acquirer} WHERE id = $1");
-        let row = sqlx::query(&sql)
-            .bind(account_id)
-            .fetch_one(&**self.pool)
-            .await?;
-        make_account(acquirer, &row)
-    }
-}
-
-fn make_account(acquirer: &str, row: &PgRow) -> Result<AcquirerAccount, Error> {
-    match acquirer {
-        "bankone" => Ok(AcquirerAccount::BankOne(BankOneAccount::from_row(&row)?)),
-        "banktwo" => Ok(AcquirerAccount::BankTwo(BankTwoAccount::from_row(&row)?)),
-        invalid => Err(Error {
-            kind: ErrorKind::Database(DbErrorKind::Query),
-            message: format!("{invalid} is not a supported acquirer"),
-        }),
+        let acquirer: &str = res.get_unchecked("acquirer");
+        let account_id: i32 = res.get_unchecked("account_id");
+        self.select_one(&account_id, &format!("account.{acquirer}"))
+            .await
     }
 }
 

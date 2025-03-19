@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::merchant::Merchant;
+use crate::{error::Error, merchant::Merchant};
 use sqlx::{
     postgres::{PgArguments, PgRow},
     prelude::FromRow,
@@ -13,6 +13,12 @@ use super::{Entity, Pool, Repo};
 #[derive(Debug, Clone)]
 pub struct MerchantRepo {
     pub pool: Arc<Pool>,
+}
+
+impl MerchantRepo {
+    pub async fn find(&self, id: &str) -> Result<Merchant, Error> {
+        self.select_one(&id.into(), "account.merchant").await
+    }
 }
 
 impl<'r> FromRow<'r, PgRow> for Merchant {
@@ -55,6 +61,10 @@ impl Entity for Merchant {
             .bind(self.county.clone())
             .bind(self.country.to_string())
     }
+
+    fn table_name(&self) -> &'static str {
+        "account.merchant"
+    }
 }
 
 impl Repo for MerchantRepo {
@@ -63,9 +73,5 @@ impl Repo for MerchantRepo {
 
     fn pool(&self) -> &PgPool {
         &self.pool
-    }
-
-    fn table_name(&self) -> &'static str {
-        "account.merchant"
     }
 }

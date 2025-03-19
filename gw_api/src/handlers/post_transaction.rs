@@ -51,7 +51,7 @@ async fn find_merchant(
     let app_access = app.lock().await;
     let merchant_data = app_access
         .merchants
-        .select_one(id)
+        .find(id)
         .await
         .map_err(|_| GatewayError {
             kind: ErrorKind::Resource,

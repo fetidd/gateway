@@ -44,9 +44,9 @@ mod tests {
     fn can_serialize_from_billing() {
         let mut billing = Billing::default();
         let exp = BillingResponse::default();
-        let exp_json = r#"{
+        let exp_json = r#"\{
   "country": "GB"
-}"#;
+\}"#;
         check_serialize_to_response(&billing, &exp, exp_json);
 
         billing.first_name = "Ben".into();
@@ -59,12 +59,12 @@ mod tests {
             country: Country::GB,
             ..Default::default()
         };
-        let exp_json = r#"{
+        let exp_json = r#"\{
   "first_name": "Ben",
   "last_name": "Jones",
   "city": "Llandudno Junction",
   "country": "GB"
-}"#;
+\}"#;
         check_serialize_to_response(&billing, &exp, exp_json);
     }
 }
