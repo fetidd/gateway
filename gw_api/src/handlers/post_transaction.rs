@@ -33,6 +33,7 @@ pub async fn handle_post_transaction(
         let tb = TransactionBuilder::new()
             .transaction_type(payload.transaction_type)
             .amount(payload.amount)
+            .currency(payload.currency)
             .payment(payment)
             .billing(billing)
             .merchant(merchant)

@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use uuid::Uuid;
 
 #[derive(Default)]
-pub struct TransactionBuilder<T, A, P, Acc, M, B> {
+pub struct TransactionBuilder<T, A, P, Acc, M, B, C> {
     transaction_type: Option<TransactionType>,
     amount: Option<Amount>,
     payment: Option<Payment>,
@@ -11,16 +11,19 @@ pub struct TransactionBuilder<T, A, P, Acc, M, B> {
     merchant: Option<Merchant>,
     account: Option<AcquirerAccount>,
     customer: Option<Customer>,
+    currency: Option<Currency>,
     _t: PhantomData<T>,
     _a: PhantomData<A>,
     _p: PhantomData<P>,
     _acc: PhantomData<Acc>,
     _m: PhantomData<M>,
     _b: PhantomData<B>,
+    _c: PhantomData<C>,
 }
 
-impl TransactionBuilder<NoType, NoAmount, NoPayment, NoAccount, NoMerchant, NoBilling> {
-    pub fn new() -> TransactionBuilder<NoType, NoAmount, NoPayment, NoAccount, NoMerchant, NoBilling>
+impl TransactionBuilder<NoType, NoAmount, NoPayment, NoAccount, NoMerchant, NoBilling, NoCurrency> {
+    pub fn new(
+    ) -> TransactionBuilder<NoType, NoAmount, NoPayment, NoAccount, NoMerchant, NoBilling, NoCurrency>
     {
         TransactionBuilder::default()
     }
@@ -50,8 +53,22 @@ pub struct NoMerchant;
 pub struct HasBilling;
 #[derive(Default)]
 pub struct NoBilling;
+#[derive(Default)]
+pub struct HasCurrency;
+#[derive(Default)]
+pub struct NoCurrency;
 
-impl TransactionBuilder<HasType, HasAmount, HasPayment, HasAccount, HasMerchant, HasBilling> {
+impl
+    TransactionBuilder<
+        HasType,
+        HasAmount,
+        HasPayment,
+        HasAccount,
+        HasMerchant,
+        HasBilling,
+        HasCurrency,
+    >
+{
     pub fn build(self) -> Transaction {
         Transaction {
             r#type: self.transaction_type.unwrap(),
@@ -63,17 +80,18 @@ impl TransactionBuilder<HasType, HasAmount, HasPayment, HasAccount, HasMerchant,
             customer: self.customer,
             status: TransactionStatus::Success,
             reference: Uuid::new_v4().to_string(),
+            currency: self.currency.unwrap(),
         }
     }
 }
 
-impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
-    TransactionBuilder<T, A, P, Acc, M, B>
+impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default, C: Default>
+    TransactionBuilder<T, A, P, Acc, M, B, C>
 {
     pub fn transaction_type(
         self,
         t_type: TransactionType,
-    ) -> TransactionBuilder<HasType, A, P, Acc, M, B> {
+    ) -> TransactionBuilder<HasType, A, P, Acc, M, B, C> {
         TransactionBuilder {
             amount: self.amount,
             transaction_type: Some(t_type),
@@ -82,6 +100,7 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
             billing: self.billing,
             customer: self.customer,
             payment: self.payment,
+            currency: self.currency,
             ..Default::default()
         }
     }
@@ -89,7 +108,7 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
     pub fn amount<I: Into<Amount>>(
         self,
         amount: I,
-    ) -> TransactionBuilder<T, HasAmount, P, Acc, M, B> {
+    ) -> TransactionBuilder<T, HasAmount, P, Acc, M, B, C> {
         TransactionBuilder {
             amount: Some(amount.into()),
             transaction_type: self.transaction_type,
@@ -98,11 +117,12 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
             billing: self.billing,
             customer: self.customer,
             payment: self.payment,
+            currency: self.currency,
             ..Default::default()
         }
     }
 
-    pub fn payment(self, payment: Payment) -> TransactionBuilder<T, A, HasPayment, Acc, M, B> {
+    pub fn payment(self, payment: Payment) -> TransactionBuilder<T, A, HasPayment, Acc, M, B, C> {
         TransactionBuilder {
             amount: self.amount,
             transaction_type: self.transaction_type,
@@ -111,6 +131,7 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
             billing: self.billing,
             customer: self.customer,
             payment: Some(payment),
+            currency: self.currency,
             ..Default::default()
         }
     }
@@ -118,7 +139,7 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
     pub fn account(
         self,
         account: AcquirerAccount,
-    ) -> TransactionBuilder<T, A, P, HasAccount, M, B> {
+    ) -> TransactionBuilder<T, A, P, HasAccount, M, B, C> {
         TransactionBuilder {
             amount: self.amount,
             transaction_type: self.transaction_type,
@@ -127,11 +148,15 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
             billing: self.billing,
             customer: self.customer,
             payment: self.payment,
+            currency: self.currency,
             ..Default::default()
         }
     }
 
-    pub fn merchant(self, merchant: Merchant) -> TransactionBuilder<T, A, P, Acc, HasMerchant, B> {
+    pub fn merchant(
+        self,
+        merchant: Merchant,
+    ) -> TransactionBuilder<T, A, P, Acc, HasMerchant, B, C> {
         TransactionBuilder {
             amount: self.amount,
             transaction_type: self.transaction_type,
@@ -140,11 +165,12 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
             billing: self.billing,
             customer: self.customer,
             payment: self.payment,
+            currency: self.currency,
             ..Default::default()
         }
     }
 
-    pub fn billing(self, billing: Billing) -> TransactionBuilder<T, A, P, Acc, M, HasBilling> {
+    pub fn billing(self, billing: Billing) -> TransactionBuilder<T, A, P, Acc, M, HasBilling, C> {
         TransactionBuilder {
             amount: self.amount,
             transaction_type: self.transaction_type,
@@ -153,6 +179,24 @@ impl<T: Default, A: Default, P: Default, Acc: Default, M: Default, B: Default>
             billing: Some(billing),
             customer: self.customer,
             payment: self.payment,
+            currency: self.currency,
+            ..Default::default()
+        }
+    }
+
+    pub fn currency(
+        self,
+        currency: Currency,
+    ) -> TransactionBuilder<T, A, P, Acc, M, B, HasCurrency> {
+        TransactionBuilder {
+            amount: self.amount,
+            transaction_type: self.transaction_type,
+            account: self.account,
+            merchant: self.merchant,
+            billing: self.billing,
+            customer: self.customer,
+            payment: self.payment,
+            currency: Some(currency),
             ..Default::default()
         }
     }
@@ -185,6 +229,7 @@ mod tests {
                 .payment(card)
                 .account(acct)
                 .billing(billing)
+                .currency(Currency::GBP)
                 .merchant(mer);
             trx.build()
         };
@@ -209,7 +254,8 @@ mod tests {
                 }),
                 customer: None,
                 status: TransactionStatus::Success,
-                reference: trx.reference.clone()
+                reference: trx.reference.clone(),
+                currency: Currency::GBP
             }
         )
     }

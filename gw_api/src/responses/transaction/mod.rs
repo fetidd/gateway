@@ -74,6 +74,7 @@ mod tests {
             .transaction_type(TransactionType::Auth)
             .payment(card)
             .amount(12345)
+            .currency(Currency::GBP)
             .account(acct)
             .merchant(mer)
             .billing(Billing::default())
