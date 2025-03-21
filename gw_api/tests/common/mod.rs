@@ -1,13 +1,13 @@
-use std::collections::{BTreeMap, VecDeque};
+use std::sync::Arc;
 
 use axum_test::TestServer;
-use gw_api::app::{create_appstate, create_router};
-use gw_core::repo::Pool;
+use gw_api::app::{create_router, AppState};
+use gw_core::pool::Pool;
 use serde_json::{Map, Value};
 
 pub fn create_server(pool: sqlx::PgPool) -> TestServer {
     let pool = Pool::from(pool);
-    let app_state = create_appstate(pool);
+    let app_state = Arc::new(AppState { pool });
     let router = create_router(app_state);
     let server = TestServer::new(router).expect("creating server failed");
     server

@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use validify::{schema_validation, ValidationErrors, Validify};
 
 use crate::{
-    account::AcquirerAccount, amount::Amount, billing::Billing, currency::Currency,
-    customer::Customer, merchant::Merchant, payment::Payment,
+    account::Account, amount::Amount, billing::Billing, currency::Currency, customer::Customer,
+    merchant::Merchant, payment::Payment,
 };
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -43,7 +43,7 @@ pub struct Transaction {
     pub payment: Payment,
     pub billing: Billing,
     pub merchant: Merchant,
-    pub account: AcquirerAccount,
+    pub account: Account,
     pub customer: Option<Customer>,
     pub status: TransactionStatus,
     pub currency: Currency,
@@ -64,14 +64,12 @@ impl PartialEq<Transaction> for Transaction {
 }
 
 #[schema_validation]
-fn validate_transaction(t: &Transaction) -> Result<(), ValidationErrors> {}
+fn validate_transaction(_t: &Transaction) -> Result<(), ValidationErrors> {}
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test_utils::check_validation;
+
     use rstest::*;
-    use transaction_builder::TransactionBuilder;
 
     #[rstest]
     fn test_schema_validate_transaction() {

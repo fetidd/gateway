@@ -12,7 +12,6 @@ macro_rules! test_case {
                 .post($endpoint)
                 .json(&create_request($overrides))
                 .await;
-            assert_eq!(response.status_code(), $status_code);
             let res_json = response.json::<serde_json::Value>();
             let exp_regex = regex::Regex::new(
                 // this means we can't use {123} repetition specifiers in the regex :()
@@ -22,7 +21,13 @@ macro_rules! test_case {
                     .replace("}", r#"\}"#),
             )
             .expect("bad regex!");
-            assert!(exp_regex.is_match(&res_json.to_string()));
+            assert!(
+                exp_regex.is_match(&res_json.to_string()),
+                "{} != {}",
+                &res_json.to_string(),
+                exp_regex.to_string()
+            );
+            assert_eq!(response.status_code(), $status_code);
         }
     };
     ($name:ident, $endpoint:expr, $status_code:expr, $body:expr) => {
@@ -33,7 +38,6 @@ macro_rules! test_case {
                 .post($endpoint)
                 .json(&create_request(Vec::<CreateRequestAction>::new()))
                 .await;
-            assert_eq!(response.status_code(), $status_code);
             let res_json = response.json::<serde_json::Value>();
             let exp_regex = regex::Regex::new(
                 &$body
@@ -42,7 +46,13 @@ macro_rules! test_case {
                     .replace("}", r#"\}"#),
             )
             .expect("bad regex!");
-            assert!(exp_regex.is_match(&res_json.to_string()));
+            assert!(
+                exp_regex.is_match(&res_json.to_string()),
+                "{} != {}",
+                &res_json.to_string(),
+                exp_regex.to_string()
+            );
+            assert_eq!(response.status_code(), $status_code);
         }
     };
 }

@@ -54,7 +54,7 @@ impl From<validify::ValidationErrors> for GatewayError {
     fn from(value: validify::ValidationErrors) -> Self {
         let errors = value
             .errors()
-            .into_iter()
+            .iter()
             .map(|e| {
                 format!(
                     "{} - {}",
@@ -76,11 +76,11 @@ impl From<Error> for GatewayError {
         match value.kind {
             CoreErrorKind::Database(DbErrorKind::Query) => GatewayError {
                 kind: ErrorKind::Resource,
-                message: format!("{}", value.message),
+                message: value.message.to_string(),
             },
             CoreErrorKind::Database(..) => GatewayError {
                 kind: ErrorKind::Fatal,
-                message: format!("{}", value.message),
+                message: value.message.to_string(),
             },
             CoreErrorKind::Type => GatewayError {
                 kind: ErrorKind::Fatal,

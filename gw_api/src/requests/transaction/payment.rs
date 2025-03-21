@@ -63,7 +63,7 @@ impl TryInto<Payment> for PaymentRequest {
         match self.payment_type.as_str() {
             "CARD" => {
                 let missing = self.get_card_missing();
-                if missing.len() > 0 {
+                if !missing.is_empty() {
                     return create_missing_error(&missing);
                 }
                 Ok(Payment::Card {
@@ -75,7 +75,7 @@ impl TryInto<Payment> for PaymentRequest {
             }
             "ACCOUNT" => {
                 let missing = self.get_account_missing();
-                if missing.len() > 0 {
+                if !missing.is_empty() {
                     return create_missing_error(&missing);
                 }
                 Ok(Payment::Account {
@@ -84,10 +84,10 @@ impl TryInto<Payment> for PaymentRequest {
                 })
             }
             invalid => {
-                return Err(GatewayError {
+                Err(GatewayError {
                     kind: Validation,
                     message: format!("{} is not a valid payment type", invalid),
-                });
+                })
             }
         }
     }

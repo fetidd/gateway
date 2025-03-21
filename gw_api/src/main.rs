@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use dotenvy::dotenv;
-use gw_api::app::{create_appstate, create_router};
-use gw_core::repo::Pool;
+use gw_api::app::{create_router, AppState};
+use gw_core::pool::Pool;
 
 #[tokio::main]
 async fn main() {
@@ -10,7 +12,7 @@ async fn main() {
     let pool = Pool::new(&db_url)
         .await
         .expect("failed to create database pool");
-    let app_state = create_appstate(pool);
+    let app_state = Arc::new(AppState { pool });
     let app = create_router(app_state);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     axum::serve(listener, app).await.unwrap();

@@ -1,5 +1,5 @@
 use crate::card_scheme::CardScheme;
-use validify::{schema_err, schema_validation, Validate, ValidationErrors};
+use validify::Validate;
 
 pub type ExpiryDate = (u32, u8);
 

@@ -1,3 +1,7 @@
+use std::ops::Deref;
+
+use sqlx::{postgres::PgPoolOptions, PgPool};
+
 use crate::error::Error;
 
 #[derive(Debug, Clone)]
@@ -16,8 +20,10 @@ impl Pool {
     }
 }
 
+type Type = PgPool;
+
 impl Deref for Pool {
-    type Target = PgPool;
+    type Target = Type;
 
     fn deref(&self) -> &Self::Target {
         &self._pool
