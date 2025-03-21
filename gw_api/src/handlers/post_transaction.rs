@@ -3,8 +3,13 @@ use std::sync::Arc;
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 // use eval_macro::eval;
 use gw_core::{
-    account::AcquirerAccount, billing::Billing, currency::Currency, merchant::Merchant,
-    payment::Payment, repo::Repo, transaction::transaction_builder::TransactionBuilder,
+    account::AcquirerAccount,
+    billing::Billing,
+    currency::Currency,
+    merchant::Merchant,
+    payment::Payment,
+    repo::Repo,
+    transaction::{transaction_builder::TransactionBuilder, Transaction},
 };
 use tokio::sync::Mutex;
 use tracing::instrument;
@@ -27,8 +32,9 @@ pub async fn handle_post_transaction(
     let billing = extract_billing_data(&mut payload)?;
     // let customer = extract_customer_data(&mut payload)?;
     let merchant_id = payload.merchant_id;
-    let merchant = find_merchant(&app, &merchant_id).await?;
-    let account = find_account(&app, &merchant_id, &payment, payload.currency).await?;
+    let merchant = Merchant::find(&merchant_id, &app.pool).await?;
+    let account =
+        AcquirerAccount::find(&merchant_id, &payment, payload.currency, &app.pool).await?;
     let mut transaction = {
         let tb = TransactionBuilder::new()
             .transaction_type(payload.transaction_type)
@@ -41,18 +47,8 @@ pub async fn handle_post_transaction(
         tb.build()
     };
     transaction.validify()?;
-    {
-        let _guard = app.lock().await;
-        _guard.transactions.insert_one(&transaction).await?;
-    }
     // send the transaction off to acquirers etc.
-    {
-        let _guard = app.lock().await;
-        _guard
-            .transactions
-            .update_one(&transaction.reference, &transaction)
-            .await?;
-    }
+    transaction.save(&app.pool)?;
     let response = TransactionResponse::from(&transaction);
     Ok((StatusCode::CREATED, Json(response)).into_response())
 }
