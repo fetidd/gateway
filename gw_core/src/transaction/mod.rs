@@ -51,6 +51,7 @@ pub struct Transaction {
 
 impl PartialEq<Transaction> for Transaction {
     fn eq(&self, other: &Transaction) -> bool {
+        // TODO test
         self.r#type == other.r#type
             && self.amount == other.amount
             && self.payment == other.payment
@@ -64,7 +65,7 @@ impl PartialEq<Transaction> for Transaction {
 }
 
 #[schema_validation]
-fn validate_transaction(_t: &Transaction) -> Result<(), ValidationErrors> {}
+fn validate_transaction(_t: &Transaction) -> Result<(), ValidationErrors> {} // TODO impl and test
 
 #[cfg(test)]
 mod tests {

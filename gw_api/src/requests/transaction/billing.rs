@@ -18,6 +18,7 @@ pub struct BillingRequest {
 
 impl TryFrom<BillingRequest> for Billing {
     fn try_from(value: BillingRequest) -> Result<Self, GatewayError> {
+        // TODO test
         Ok(Billing {
             first_name: value.first_name.unwrap_or_default(),
             last_name: value.last_name.unwrap_or_default(),

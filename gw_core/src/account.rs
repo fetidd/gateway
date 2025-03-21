@@ -1,4 +1,3 @@
-
 use sqlx::{postgres::PgRow, FromRow, Row};
 
 use crate::{
@@ -46,6 +45,7 @@ pub async fn select_for(
     currency: Currency,
     pool: &Pool,
 ) -> Result<Account, Error> {
+    // TODO test
     let scheme = match *payment_data {
         Payment::Card { scheme, .. } => scheme,
         Payment::Account { .. } => todo!(),
@@ -74,6 +74,7 @@ pub async fn select_for(
 }
 
 async fn load(id: i32, acquirer: &str, pool: &Pool) -> Result<Account, Error> {
+    // TODO test
     let s = format!("SELECT * FROM account.{acquirer} WHERE id = $1");
     let q = sqlx::query(&s).bind(id);
     let account = q.fetch_one(&**pool).await?;
@@ -118,7 +119,6 @@ impl From<BankTwoAccount> for Account {
 
 #[cfg(test)]
 mod tests {
-    
 
     // #[test]
     // fn access_inner() {

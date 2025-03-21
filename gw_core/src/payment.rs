@@ -22,6 +22,7 @@ pub enum Payment {
 
 impl From<(CardScheme, ExpiryDate, &str, &str)> for Payment {
     fn from(value: (CardScheme, ExpiryDate, &str, &str)) -> Self {
+        // TODO test
         Payment::Card {
             scheme: value.0,
             expiry_date: value.1.to_owned(),

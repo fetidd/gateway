@@ -57,6 +57,7 @@ impl Merchant {
 }
 
 impl<'r> sqlx::FromRow<'r, sqlx::postgres::PgRow> for Merchant {
+    // TODO test
     fn from_row(row: &'r sqlx::postgres::PgRow) -> Result<Self, sqlx::Error> {
         let country = row
             .try_get::<String, &str>("country")?
